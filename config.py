@@ -1,44 +1,75 @@
 """
-==========================================================
+=========================================================
 CONFIGURATION
 Livin Emotion Analysis Dashboard
-==========================================================
+=========================================================
 """
 
 import os
 
 # ==========================================================
-# PROJECT
+# APPLICATION
 # ==========================================================
 
-PROJECT_NAME = "Livin Emotion Analysis Dashboard"
+APP_NAME = "Livin Emotion Analysis"
 
-VERSION = "1.0.0"
+APP_VERSION = "1.0.0"
 
 AUTHOR = "Herdi"
 
-DESCRIPTION = """
-Emotion Classification menggunakan Fine-Tuned IndoBERT,
-Customer Segmentation menggunakan KMeans,
-dan Customer Retention Recommendation.
-"""
-
 # ==========================================================
-# HUGGING FACE MODEL
+# PAGE
 # ==========================================================
 
-# Ganti sesuai repository Anda
+PAGE_TITLE = "Livin Emotion Analysis Dashboard"
+
+PAGE_ICON = "📊"
+
+LAYOUT = "wide"
+
+INITIAL_SIDEBAR_STATE = "expanded"
+
+FOOTER = "© 2026 Livin Emotion Analysis"
+
+# ==========================================================
+# PATH
+# ==========================================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+ASSET_DIR = os.path.join(BASE_DIR, "assets")
+
+CSS = os.path.join(ASSET_DIR, "style.css")
+
+LOGO = os.path.join(ASSET_DIR, "logo.png")
+
+# ==========================================================
+# HUGGING FACE
+# ==========================================================
+
 HF_MODEL = "username/livin-emotion-indobert"
 
-# Contoh:
+# contoh:
 # HF_MODEL = "envidevelopment/livin-emotion-indobert"
+
+# ==========================================================
+# TOKENIZER
+# ==========================================================
 
 MAX_LENGTH = 128
 
-DEVICE = "cpu"
+TRUNCATION = True
+
+PADDING = "max_length"
+
+RETURN_TENSOR = "pt"
 
 # ==========================================================
-# LABEL EMOTION
+# EMOTION LABEL
 # ==========================================================
 
 EMOTION_LABELS = [
@@ -53,124 +84,40 @@ EMOTION_LABELS = [
 
 ]
 
-NUM_LABELS = len(EMOTION_LABELS)
-
-LABEL2ID = {
-
-    "Frustrasi":0,
-
-    "Netral":1,
-
-    "Sedih":2,
-
-    "Senang":3
-
-}
-
-ID2LABEL = {
-
-    0:"Frustrasi",
-
-    1:"Netral",
-
-    2:"Sedih",
-
-    3:"Senang"
-
-}
+NUM_LABEL = len(EMOTION_LABELS)
 
 # ==========================================================
-# MODEL DIRECTORY
-# ==========================================================
-
-MODEL_DIR = "models"
-
-LABEL_ENCODER_PATH = os.path.join(
-    MODEL_DIR,
-    "label_encoder.pkl"
-)
-
-SCALER_PATH = os.path.join(
-    MODEL_DIR,
-    "scaler.pkl"
-)
-
-KMEANS_PATH = os.path.join(
-    MODEL_DIR,
-    "kmeans.pkl"
-)
-
-# ==========================================================
-# DATA
-# ==========================================================
-
-DATA_DIR = "data"
-
-SAMPLE_DATA = os.path.join(
-    DATA_DIR,
-    "sample_review.csv"
-)
-
-# ==========================================================
-# STREAMLIT
-# ==========================================================
-
-PAGE_TITLE = "Livin Emotion Analysis"
-
-PAGE_ICON = "📊"
-
-LAYOUT = "wide"
-
-INITIAL_SIDEBAR_STATE = "expanded"
-
-# ==========================================================
-# DASHBOARD COLOR
-# ==========================================================
-
-PRIMARY_COLOR = "#1E88E5"
-
-SUCCESS_COLOR = "#43A047"
-
-WARNING_COLOR = "#FB8C00"
-
-DANGER_COLOR = "#E53935"
-
-BACKGROUND_COLOR = "#F5F5F5"
-
-TEXT_COLOR = "#212121"
-
-# ==========================================================
-# CHART COLOR
+# EMOTION COLOR
 # ==========================================================
 
 EMOTION_COLOR = {
 
-    "Senang":"#4CAF50",
+    "Frustrasi": "#EF4444",
 
-    "Netral":"#2196F3",
+    "Netral": "#FACC15",
 
-    "Sedih":"#FB8C00",
+    "Sedih": "#3B82F6",
 
-    "Frustrasi":"#F44336"
+    "Senang": "#22C55E"
 
 }
 
 # ==========================================================
-# CUSTOMER SEGMENT
+# SEGMENT
 # ==========================================================
 
 SEGMENT_MAPPING = {
 
-    0:"Satisfied Customer",
+    0: "Satisfied Customer",
 
-    1:"Passive Customer",
+    1: "Passive Customer",
 
-    2:"At-Risk Customer"
+    2: "At-Risk Customer"
 
 }
 
 # ==========================================================
-# RETENTION STRATEGY
+# RETENTION
 # ==========================================================
 
 RETENTION = {
@@ -180,10 +127,7 @@ RETENTION = {
         "Priority":"Low",
 
         "Recommendation":
-        """
-        Pertahankan loyalitas pelanggan melalui
-        reward, cashback, dan promo eksklusif.
-        """
+        "Pertahankan loyalitas pelanggan melalui reward, cashback, dan promo eksklusif."
 
     },
 
@@ -192,10 +136,7 @@ RETENTION = {
         "Priority":"Medium",
 
         "Recommendation":
-        """
-        Tingkatkan engagement melalui edukasi fitur,
-        campaign, dan personalisasi layanan.
-        """
+        "Dorong penggunaan fitur melalui edukasi dan personalisasi promo."
 
     },
 
@@ -204,138 +145,150 @@ RETENTION = {
         "Priority":"High",
 
         "Recommendation":
-        """
-        Prioritaskan penyelesaian keluhan,
-        peningkatan stabilitas aplikasi,
-        dan customer support proaktif.
-        """
+        "Prioritaskan penyelesaian keluhan dan tingkatkan kualitas layanan."
 
     }
 
 }
 
 # ==========================================================
-# KMEANS
+# MODEL FILE
 # ==========================================================
 
-N_CLUSTER = 3
+SCALER = os.path.join(
+
+    MODEL_DIR,
+
+    "scaler.pkl"
+
+)
+
+KMEANS = os.path.join(
+
+    MODEL_DIR,
+
+    "kmeans.pkl"
+
+)
+
+LABEL_ENCODER = os.path.join(
+
+    MODEL_DIR,
+
+    "label_encoder.pkl"
+
+)
+
+# ==========================================================
+# SESSION STATE
+# ==========================================================
+
+SESSION = {
+
+    "RAW":"raw_df",
+
+    "UNDERSTANDING":"understanding_df",
+
+    "CLEAN":"clean_df",
+
+    "CASE":"case_df",
+
+    "NORMAL":"normal_df",
+
+    "TOKEN":"token_df",
+
+    "PREDICTION":"prediction_df",
+
+    "PROBABILITY":"probability_df",
+
+    "SEGMENT":"segment_df",
+
+    "RETENTION":"retention_df"
+
+}
+
+# ==========================================================
+# DATASET COLUMN
+# ==========================================================
+
+TEXT_COLUMNS = [
+
+    "content",
+
+    "review",
+
+    "ulasan",
+
+    "text"
+
+]
+
+SCORE_COLUMNS = [
+
+    "score",
+
+    "rating"
+
+]
+
+DATE_COLUMNS = [
+
+    "at",
+
+    "date",
+
+    "tanggal"
+
+]
+
+# ==========================================================
+# OUTPUT COLUMN
+# ==========================================================
+
+OUTPUT = {
+
+    "TEXT":"normalization",
+
+    "EMOTION":"emotion",
+
+    "CONFIDENCE":"confidence",
+
+    "SEGMENT":"Customer Segment",
+
+    "PRIORITY":"Priority"
+
+}
+
+# ==========================================================
+# CACHE
+# ==========================================================
+
+CACHE_MODEL = True
+
+CACHE_DATA = True
+
+# ==========================================================
+# EXPORT
+# ==========================================================
+
+CSV_ENCODING = "utf-8-sig"
+
+EXPORT_NAME = "Livin_Emotion_Result.csv"
+
+# ==========================================================
+# RANDOM
+# ==========================================================
 
 RANDOM_STATE = 42
 
-# ==========================================================
-# PREPROCESSING
-# ==========================================================
-
-REMOVE_URL = True
-
-REMOVE_HTML = True
-
-REMOVE_NUMBER = True
-
-REMOVE_PUNCTUATION = True
-
-REMOVE_EMOJI = True
-
-REMOVE_EXTRA_SPACE = True
-
-LOWERCASE = True
-
-STEMMING = True
-
-STOPWORD = True
-
-NORMALIZATION = True
+N_CLUSTER = 3
 
 # ==========================================================
-# FILE
+# VERSION
 # ==========================================================
 
-SUPPORTED_FILE = [
+MODEL_NAME = "Fine-Tuned IndoBERT"
 
-    "csv",
+SEGMENT_MODEL = "KMeans"
 
-    "xlsx"
-
-]
-
-# ==========================================================
-# COLUMN
-# ==========================================================
-
-TEXT_COLUMN = "review"
-
-OUTPUT_COLUMN = "emotion"
-
-CONFIDENCE_COLUMN = "confidence"
-
-SEGMENT_COLUMN = "Customer Segment"
-
-# ==========================================================
-# VISUALIZATION
-# ==========================================================
-
-PIE_HEIGHT = 450
-
-BAR_HEIGHT = 450
-
-WORDCLOUD_WIDTH = 900
-
-WORDCLOUD_HEIGHT = 500
-
-# ==========================================================
-# BATCH PREDICTION
-# ==========================================================
-
-BATCH_SIZE = 32
-
-# ==========================================================
-# DOWNLOAD
-# ==========================================================
-
-OUTPUT_FILE = "Emotion_Analysis_Result.csv"
-
-# ==========================================================
-# SIDEBAR
-# ==========================================================
-
-MENU = [
-
-    "Dashboard",
-
-    "Single Prediction",
-
-    "Batch Prediction",
-
-    "Customer Segmentation"
-
-]
-
-# ==========================================================
-# FOOTER
-# ==========================================================
-
-FOOTER = """
-Developed using
-
-✅ IndoBERT
-
-✅ HuggingFace
-
-✅ Streamlit
-
-✅ Scikit-Learn
-"""
-
-# ==========================================================
-# LOGO
-# ==========================================================
-
-LOGO = "assets/logo.png"
-
-CSS = "assets/style.css"
-
-print("="*60)
-print(PROJECT_NAME)
-print(VERSION)
-print("Configuration Loaded")
-print("="*60)
+DEPLOYMENT = "Streamlit Community Cloud"
