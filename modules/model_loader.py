@@ -2,30 +2,43 @@
 =========================================================
 MODEL LOADER
 =========================================================
+Production Ready
+=========================================================
 """
 
+import joblib
 import streamlit as st
 import torch
-import joblib
 
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification
 )
 
-from config import *
-
-# =========================================================
-# DEVICE
-# =========================================================
-
-DEVICE = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
+from config import (
+    HF_MODEL,
+    SCALER,
+    KMEANS,
+    LABEL_ENCODER
 )
 
-# =========================================================
-# LOAD TOKENIZER
-# =========================================================
+# ==========================================================
+# DEVICE
+# ==========================================================
+
+@st.cache_resource
+def get_device():
+
+    if torch.cuda.is_available():
+
+        return torch.device("cuda")
+
+    return torch.device("cpu")
+
+
+# ==========================================================
+# TOKENIZER
+# ==========================================================
 
 @st.cache_resource
 def load_tokenizer():
@@ -37,63 +50,65 @@ def load_tokenizer():
     return tokenizer
 
 
-# =========================================================
-# LOAD MODEL
-# =========================================================
+# ==========================================================
+# MODEL
+# ==========================================================
 
 @st.cache_resource
 def load_model():
+
+    device = get_device()
 
     model = AutoModelForSequenceClassification.from_pretrained(
         HF_MODEL
     )
 
-    model.to(DEVICE)
+    model.to(device)
 
     model.eval()
 
     return model
 
 
-# =========================================================
-# LOAD LABEL ENCODER
-# =========================================================
+# ==========================================================
+# LABEL ENCODER
+# ==========================================================
 
 @st.cache_resource
 def load_label_encoder():
 
     return joblib.load(
-        LABEL_ENCODER_PATH
+        LABEL_ENCODER
     )
 
 
-# =========================================================
-# LOAD SCALER
-# =========================================================
+# ==========================================================
+# SCALER
+# ==========================================================
 
 @st.cache_resource
 def load_scaler():
 
     return joblib.load(
-        SCALER_PATH
+        SCALER
     )
 
 
-# =========================================================
-# LOAD KMEANS
-# =========================================================
+# ==========================================================
+# KMEANS
+# ==========================================================
 
 @st.cache_resource
 def load_kmeans():
 
     return joblib.load(
-        KMEANS_PATH
+        KMEANS
     )
 
 
-# =========================================================
+# ==========================================================
 # LOAD ALL
-# =========================================================
+# ==========================================================
 
 @st.cache_resource
 def load_all():
@@ -123,120 +138,31 @@ def load_all():
     )
 
 
-# =========================================================
-# GET DEVICE
-# =========================================================
+# ==========================================================
+# MODEL INFORMATION
+# ==========================================================
 
-def get_device():
+def model_information():
 
-    return DEVICE
+    device = get_device()
 
+    return {
 
-# =========================================================
-# MODEL INFO
-# =========================================================
+        "Model":HF_MODEL,
 
-def get_model_information():
+        "Device":str(device),
 
-    model = load_model()
+        "Framework":"PyTorch",
 
-    info = {
-
-        "Model Name":HF_MODEL,
-
-        "Device":str(DEVICE),
-
-        "Number of Labels":model.config.num_labels,
-
-        "Maximum Length":MAX_LENGTH,
-
-        "Emotion Labels":EMOTION_LABELS
+        "Transformer":"IndoBERT"
 
     }
 
-    return info
 
+# ==========================================================
+# CLEAR CACHE
+# ==========================================================
 
-# =========================================================
-# CHECK MODEL
-# =========================================================
+def clear_cache():
 
-def check_model():
-
-    try:
-
-        tokenizer = load_tokenizer()
-
-        model = load_model()
-
-        return True
-
-    except Exception as e:
-
-        st.error(e)
-
-        return False
-
-
-# =========================================================
-# WARMUP
-# =========================================================
-
-def warmup():
-
-    tokenizer = load_tokenizer()
-
-    model = load_model()
-
-    sample = "Aplikasi Livin sangat membantu transaksi saya"
-
-    inputs = tokenizer(
-
-        sample,
-
-        return_tensors="pt",
-
-        truncation=True,
-
-        padding=True,
-
-        max_length=MAX_LENGTH
-
-    )
-
-    inputs = {
-
-        k:v.to(DEVICE)
-
-        for k,v in inputs.items()
-
-    }
-
-    with torch.no_grad():
-
-        _ = model(**inputs)
-
-    return True
-
-
-# =========================================================
-# LOAD STATUS
-# =========================================================
-
-def model_status():
-
-    status = {
-
-        "Tokenizer":"Loaded",
-
-        "Model":"Loaded",
-
-        "Label Encoder":"Loaded",
-
-        "Scaler":"Loaded",
-
-        "KMeans":"Loaded"
-
-    }
-
-    return status
+    st.cache_resource.clear()
