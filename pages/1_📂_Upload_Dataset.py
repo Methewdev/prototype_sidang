@@ -53,17 +53,52 @@ uploaded_file = st.file_uploader(
 # LOAD FILE
 # ==========================================================
 
-if uploaded_file is not None:
+if uploaded_file.name.endswith(".csv"):
 
-    if uploaded_file.name.endswith(".csv"):
+    try:
+        # Coba delimiter koma
+        df = pd.read_csv(
+            uploaded_file,
+            encoding="utf-8"
+        )
 
-        df = pd.read_csv(uploaded_file)
+    except Exception:
 
-    else:
+        uploaded_file.seek(0)
 
-        df = pd.read_excel(uploaded_file)
+        try:
+            # Coba delimiter titik koma
+            df = pd.read_csv(
+                uploaded_file,
+                sep=";",
+                encoding="utf-8"
+            )
 
-    st.session_state["raw_df"] = df
+        except Exception:
+
+            uploaded_file.seek(0)
+
+            try:
+                # Coba encoding latin1
+                df = pd.read_csv(
+                    uploaded_file,
+                    encoding="latin1"
+                )
+
+            except Exception:
+
+                uploaded_file.seek(0)
+
+                # Deteksi otomatis delimiter
+                df = pd.read_csv(
+                    uploaded_file,
+                    sep=None,
+                    engine="python"
+                )
+
+else:
+
+    df = pd.read_excel(uploaded_file)
 
 # ==========================================================
 # DISPLAY DATA
