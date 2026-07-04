@@ -124,7 +124,8 @@ st.subheader("Emotion Probability")
 display = probability_df[
 
     [
-
+        "content",
+        
         "emotion",
 
         "confidence",
