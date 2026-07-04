@@ -181,10 +181,11 @@ st.markdown("---")
 # TABS
 # =====================================================
 
+st.subheader("📋 Hasil Setiap Tahapan Preprocessing")
+
 tabs = st.tabs([
     "🧹 Cleaning",
     "🔡 Case Folding",
-    "🧽 Clean Text",
     "🔄 Normalization",
     "🚫 Stopword",
     "🌱 Stemming",
@@ -192,50 +193,47 @@ tabs = st.tabs([
     "📄 Final Text"
 ])
 
-columns = [
-    ("cleaning", "cleaning"),
+# gunakan kolom asli apabila tersedia
+original_col = text_column if text_column in preprocess_df.columns else "cleaning"
+
+pipeline = [
+    (original_col, "cleaning"),
     ("cleaning", "case_folding"),
-    ("case_folding", "clean_text"),
-    ("clean_text", "normalization"),
+    ("case_folding", "normalization"),
     ("normalization", "stopword"),
     ("stopword", "stemming"),
     ("stemming", "token"),
-    ("stemming_text", "final_text")
+    ("stemming", "final_text")
 ]
 
-for tab, (left_col, right_col) in zip(tabs, columns):
+for tab, (before, after) in zip(tabs, pipeline):
 
     with tab:
 
-        if left_col not in preprocess_df.columns:
-            st.warning(f"Kolom '{left_col}' tidak ditemukan.")
+        if before not in preprocess_df.columns:
+            st.warning(f"Kolom '{before}' tidak ditemukan.")
             continue
 
-        if right_col not in preprocess_df.columns:
-            st.warning(f"Kolom '{right_col}' tidak ditemukan.")
+        if after not in preprocess_df.columns:
+            st.warning(f"Kolom '{after}' tidak ditemukan.")
             continue
+
+        # Hindari duplicate column
+        cols = []
+        for c in [before, after]:
+            if c not in cols:
+                cols.append(c)
+
+        preview = preprocess_df[cols].copy()
+
+        # token berupa list agar mudah dibaca
+        if after == "token":
+            preview["token"] = preview["token"].apply(
+                lambda x: ", ".join(x) if isinstance(x, list) else x
+            )
 
         st.dataframe(
-            preprocess_df[
-                [
-                    left_col,
-                    right_col
-                ]
-            ],
+            preview,
             use_container_width=True,
             height=450
         )
-
-st.markdown("---")
-
-# =====================================================
-# DOWNLOAD
-# =====================================================
-
-st.download_button(
-    label="⬇ Download Hasil Preprocessing",
-    data=download_csv(preprocess_df),
-    file_name="preprocessing.csv",
-    mime="text/csv",
-    use_container_width=True
-)
