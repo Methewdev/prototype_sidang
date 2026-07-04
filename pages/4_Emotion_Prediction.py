@@ -151,15 +151,6 @@ display_columns = [
     if col in prediction_display.columns
 ]
 
-st.subheader("Prediction Result")
-
-st.dataframe(
-    prediction_display[display_columns],
-    use_container_width=True,
-    hide_index=True,
-    height=450
-)
-
 # =====================================================
 # VISUALIZATION
 # =====================================================
