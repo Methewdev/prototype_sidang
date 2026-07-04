@@ -70,7 +70,7 @@ if "retention_df" not in st.session_state:
 
     st.stop()
 
-retention_df = st.session_state["retention_df"]
+retention_df = segmentation_df.copy()
 
 # =====================================================
 # STATISTICS
