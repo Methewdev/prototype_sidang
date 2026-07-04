@@ -163,7 +163,7 @@ st.markdown("---")
 
 st.subheader("📈 Cluster Profile")
 
-ry:
+try:
 
     profile = cluster_profile(segmentation_df)
 
@@ -173,6 +173,10 @@ ry:
     )
 
 except Exception as e:
+
+    st.warning(
+        f"Cluster Profile gagal dibuat: {e}"
+    )
 
 st.markdown("---")
 
