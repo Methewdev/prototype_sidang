@@ -55,17 +55,6 @@ with st.sidebar:
         """
 ### Workflow
 
-Pilih menu pada sidebar sebelah kiri untuk memulai analisis.
-
-1. Upload Dataset
-2. Data Understanding
-3. Preprocessing
-4. Emotion Prediction
-5. Emotion Probability
-6. Customer Segmentation
-7. Customer Retention
-8. Dashboard
-"""
     )
 
 # =====================================================
