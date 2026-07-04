@@ -91,31 +91,35 @@ segmentation_df = st.session_state["segmentation_df"]
 # SUMMARY
 # =====================================================
 
-stat = segment_statistics(
-    segmentation_df
+stat = segment_statistics(segmentation_df)
+
+score = silhouette(segmentation_df)
 
 c1, c2, c3, c4 = st.columns(4)
-
 c1.metric(
     "Total Customer",
     stat["Total Customer"]
 )
 
+c1.metric(
+    "Total Customer",
+    stat.get("Total Customer", 0)
+)
+
 c2.metric(
     "Total Segment",
-    stat["Total Segment"]
+    stat.get("Total Segment", 0)
 )
 
 c3.metric(
     "Dominant Segment",
-    stat["Dominant Segment"]
+    stat.get("Dominant Segment", "-")
 )
 
 c4.metric(
     "Silhouette Score",
-    score
+    round(score, 3) if score is not None else "-"
 )
-
 st.markdown("---")
 
 # =====================================================
@@ -124,12 +128,17 @@ st.markdown("---")
 
 st.subheader("📊 Customer Segment Distribution")
 
-st.plotly_chart(
-    segment_bar(segmentation_df),
-    use_container_width=True
-)
+try:
+    fig = segment_bar(segmentation_df)
 
-st.markdown("---")
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+except Exception as e:
+
+    st.warning(f"Visualisasi gagal dibuat: {e}")
 
 # =====================================================
 # SEGMENT SUMMARY
@@ -154,14 +163,16 @@ st.markdown("---")
 
 st.subheader("📈 Cluster Profile")
 
-profile = cluster_profile(
-    segmentation_df
-)
+ry:
 
-st.dataframe(
-    profile,
-    use_container_width=True
-)
+    profile = cluster_profile(segmentation_df)
+
+    st.dataframe(
+        profile,
+        use_container_width=True
+    )
+
+except Exception as e:
 
 st.markdown("---")
 
@@ -171,41 +182,56 @@ st.markdown("---")
 
 st.subheader("😊 Dominant Emotion per Segment")
 
-emotion = dominant_emotion(
-    segmentation_df
-)
+try:
 
-emotion_df = pd.DataFrame({
+    emotion = dominant_emotion(segmentation_df)
 
-    "Customer Segment": emotion.index,
+    emotion_df = pd.DataFrame({
 
-    "Dominant Emotion": emotion.values
+        "Customer Segment": emotion.index,
 
-})
+        "Dominant Emotion": emotion.values
 
-st.dataframe(
-    emotion_df,
-    use_container_width=True
-)
+    })
 
-st.markdown("---")
+    st.dataframe(
+        emotion_df,
+        use_container_width=True
+    )
 
+except Exception as e:
+
+    st.warning(f"Dominant Emotion gagal dibuat: {e}")
 # =====================================================
 # RESULT
 # =====================================================
 
 st.subheader("📄 Segmentation Result")
 
-display_columns = [
-    col
-    for col in [
-        "content",
-        "emotion",
-        "confidence",
-        "Customer Segment"
-    ]
-    if col in segmentation_df.columns
+display_columns = []
+
+candidate_columns = [
+
+    "content",
+    "final_text",
+    "emotion",
+    "confidence",
+    "Customer Segment",
+    "Cluster"
+
 ]
+
+for col in candidate_columns:
+
+    if col in segmentation_df.columns:
+
+        display_columns.append(col)
+        
+if len(display_columns) == 0:
+
+    st.error("Kolom hasil segmentasi tidak ditemukan.")
+
+    st.stop()
 
 st.dataframe(
     segmentation_df[
