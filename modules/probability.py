@@ -11,7 +11,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from modules.prediction import predict
+from modules.prediction import predict_text
 from config import EMOTION_LABELS
 
 # ==========================================================
