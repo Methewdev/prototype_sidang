@@ -96,10 +96,6 @@ stat = segment_statistics(segmentation_df)
 score = silhouette(segmentation_df)
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric(
-    "Total Customer",
-    stat["Total Customer"]
-)
 
 c1.metric(
     "Total Customer",
