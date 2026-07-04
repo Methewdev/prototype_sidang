@@ -50,8 +50,8 @@ st.markdown("---")
 # =====================================================
 
 df = require_session(
-    "raw_df",
-    "Silakan upload dataset terlebih dahulu."
+    "raw_data",
+    "Silakan lakukan scraping terlebih dahulu pada menu Live Scraper."
 )
 
 text_column = detect_text_column(df)
