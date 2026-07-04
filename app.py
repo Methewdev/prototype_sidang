@@ -56,7 +56,7 @@ with st.sidebar:
 
     st.markdown("## Workflow")
 
-   st.page_link(
+st.page_link(
     "page/1_Upload_Dataset.py",
     label="📂 Upload Dataset"
 )
