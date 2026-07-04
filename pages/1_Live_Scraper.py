@@ -62,30 +62,6 @@ with st.sidebar:
         step=100
     )
 
-    sort = st.selectbox(
-        "Urutan Review",
-        [
-            "newest",
-            "relevant"
-        ]
-    )
-
-    language = st.selectbox(
-        "Bahasa",
-        [
-            "id",
-            "en"
-        ]
-    )
-
-    country = st.selectbox(
-        "Negara",
-        [
-            "id",
-            "us"
-        ]
-    )
-
     scrape_button = st.button(
         "🚀 Ambil Review",
         use_container_width=True
