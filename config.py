@@ -6,7 +6,7 @@ APP_TITLE = "Livin Emotion Analysis"
 
 APP_ICON = "📊"
 
-MODEL_NAME = "username/livin-emotion-indobert"
+MODEL_NAME = "envidevelopment/livin-emotion-indobert"
 
 LOGO = ROOT / "assets" / "logo.png"
 
