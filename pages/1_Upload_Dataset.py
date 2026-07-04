@@ -27,55 +27,118 @@ st.title("📥 Upload Dataset")
 st.markdown("---")
 
 # =====================================================
-# UPLOAD FILE
+# FILE UPLOADER
 # =====================================================
 
 uploaded_file = st.file_uploader(
-    "Upload Dataset (.csv atau .xlsx)",
-    type=[
-        "csv",
-        "xlsx"
-    ]
+    "Upload Dataset",
+    type=["csv", "xlsx"]
 )
 
 # =====================================================
-# READ FILE
+# FUNCTION READ FILE
+# =====================================================
+
+def read_dataset(file):
+
+    if file.name.lower().endswith(".xlsx"):
+        return pd.read_excel(file)
+
+    errors = []
+
+    encodings = [
+        "utf-8",
+        "utf-8-sig",
+        "latin1"
+    ]
+
+    separators = [
+        ",",
+        ";"
+    ]
+
+    for enc in encodings:
+
+        for sep in separators:
+
+            try:
+
+                file.seek(0)
+
+                df = pd.read_csv(
+                    file,
+                    encoding=enc,
+                    sep=sep
+                )
+
+                if len(df.columns) > 1:
+                    return df
+
+            except Exception as e:
+                errors.append(str(e))
+
+    # Auto detect separator
+
+    try:
+
+        file.seek(0)
+
+        return pd.read_csv(
+            file,
+            sep=None,
+            engine="python"
+        )
+
+    except Exception as e:
+
+        errors.append(str(e))
+
+    raise Exception(
+        "\n".join(errors)
+    )
+
+# =====================================================
+# READ DATASET
 # =====================================================
 
 if uploaded_file is not None:
 
-    if uploaded_file.name.endswith(".csv"):
+    try:
 
-        df = pd.read_csv(uploaded_file)
+        df = read_dataset(uploaded_file)
 
-    else:
+    except Exception as e:
 
-        df = pd.read_excel(uploaded_file)
+        st.error("❌ Dataset gagal dibaca.")
+
+        st.exception(e)
+
+        st.stop()
+
+    # ===============================================
 
     save_session(
         "raw_df",
         df
     )
 
-    st.success(
-        "Dataset berhasil diupload."
-    )
+    st.success("✅ Dataset berhasil diupload.")
 
     st.markdown("---")
 
-    # =================================================
-    # METRIC
-    # =================================================
+    # ===============================================
+    # METRICS
+    # ===============================================
 
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
-        "Total Review",
-        len(df)
+        "Jumlah Baris",
+        f"{len(df):,}"
     )
 
     c2.metric(
-        "Total Column",
+        "Jumlah Kolom",
         len(df.columns)
     )
 
@@ -91,40 +154,41 @@ if uploaded_file is not None:
 
     st.markdown("---")
 
-    # =================================================
-    # PREVIEW
-    # =================================================
+    # ===============================================
+    # COLUMN LIST
+    # ===============================================
 
-    st.subheader("Dataset Preview")
+    st.subheader("📋 Daftar Kolom")
+
+    st.write(list(df.columns))
+
+    st.markdown("---")
+
+    # ===============================================
+    # PREVIEW
+    # ===============================================
+
+    st.subheader("📄 Dataset Preview")
 
     st.dataframe(
         df,
         use_container_width=True,
-        height=500
+        height=450
     )
 
     st.markdown("---")
 
-    # =================================================
-    # COLUMN INFORMATION
-    # =================================================
+    # ===============================================
+    # INFORMATION
+    # ===============================================
 
-    st.subheader("Column Information")
+    st.subheader("📊 Informasi Dataset")
 
     info = pd.DataFrame({
-
         "Column": df.columns,
-
         "Data Type": df.dtypes.astype(str),
-
-        "Missing":
-
-            df.isnull().sum().values,
-
-        "Unique":
-
-            df.nunique().values
-
+        "Missing": df.isnull().sum().values,
+        "Unique": df.nunique().values
     })
 
     st.dataframe(
@@ -134,9 +198,9 @@ if uploaded_file is not None:
 
     st.markdown("---")
 
-    # =================================================
+    # ===============================================
     # DOWNLOAD
-    # =================================================
+    # ===============================================
 
     st.download_button(
         label="⬇ Download Dataset",
@@ -149,5 +213,5 @@ if uploaded_file is not None:
 else:
 
     st.info(
-        "Silakan upload dataset untuk memulai proses analisis."
+        "Silakan upload dataset (.csv atau .xlsx) untuk memulai analisis."
     )
