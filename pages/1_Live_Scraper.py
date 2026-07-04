@@ -37,8 +37,7 @@ if "raw_data" not in st.session_state:
 
 st.title("📥 Live Google Play Review Scraper")
 st.caption(
-    "Ambil review terbaru langsung dari Google Play Store "
-    "tanpa perlu upload dataset."
+    "Ambil review terbaru langsung dari Google Play Store tanpa perlu upload dataset."
 )
 
 # =====================================================
@@ -56,20 +55,16 @@ with st.sidebar:
 
     count = st.slider(
         "Jumlah Review",
-        100,
-        5000,
-        500,
-        100
+        min_value=100,
+        max_value=5000,
+        value=500,
+        step=100
     )
 
     scrape_button = st.button(
         "🚀 Ambil Review",
         use_container_width=True
     )
-    df = get_reviews(
-    app_name=app_name,
-    count=count
-)
 
 # =====================================================
 # SCRAPING
@@ -77,27 +72,31 @@ with st.sidebar:
 
 if scrape_button:
 
-    with st.spinner("Mengambil data dari Google Play Store..."):
+    with st.spinner("Mengambil review dari Google Play Store..."):
 
         try:
 
             df = get_reviews(
                 app_name=app_name,
-                count=count,
-                country=country,
-                language=language,
-                sort=sort
+                count=count
             )
 
+            if df.empty:
+                st.warning("Tidak ada review yang berhasil diambil.")
+                st.stop()
+
             st.session_state.raw_data = df
+            st.session_state.app_name = app_name
 
             st.success(
-                f"✅ {len(df)} review berhasil diambil."
+                f"✅ Berhasil mengambil {len(df)} review."
             )
 
         except Exception as e:
 
-            st.error(str(e))
+            st.error(
+                f"Gagal mengambil data.\n\n{e}"
+            )
 
 # =====================================================
 # SHOW DATA
@@ -113,6 +112,15 @@ if not st.session_state.raw_data.empty:
 
     info = dataset_info(df)
 
+    latest = "-"
+    oldest = "-"
+
+    if pd.notna(info["Latest Review"]):
+        latest = info["Latest Review"].strftime("%d-%m-%Y")
+
+    if pd.notna(info["Oldest Review"]):
+        oldest = info["Oldest Review"].strftime("%d-%m-%Y")
+
     c1, c2, c3, c4, c5 = st.columns(5)
 
     c1.metric(
@@ -126,15 +134,18 @@ if not st.session_state.raw_data.empty:
     )
 
     c3.metric(
-    "Latest Review",
-    info["Latest Review"].strftime("%d-%m-%Y")
-        
+        "Latest Review",
+        latest
     )
 
     c4.metric(
-    "Oldest Review",
-    info["Oldest Review"].strftime("%d-%m-%Y")
-        
+        "Oldest Review",
+        oldest
+    )
+
+    c5.metric(
+        "App Version",
+        info["Total Version"]
     )
 
     st.divider()
@@ -144,13 +155,20 @@ if not st.session_state.raw_data.empty:
     st.dataframe(
         df,
         width="stretch",
-        hide_index=True
+        hide_index=True,
+        height=500
+    )
+
+    filename = (
+        st.session_state.app_name
+        .replace(" ", "_")
+        .replace("'", "")
     )
 
     st.download_button(
         "⬇️ Download CSV",
         data=export_csv(df),
-        file_name="google_play_reviews.csv",
+        file_name=f"{filename}.csv",
         mime="text/csv",
         use_container_width=True
     )
