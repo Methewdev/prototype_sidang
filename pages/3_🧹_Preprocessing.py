@@ -83,148 +83,139 @@ if "preprocess_df" not in st.session_state:
 preprocess_df = st.session_state["preprocess_df"]
 
 st.markdown("---")
+# =====================================================
+# TABS
+# =====================================================
+
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-
     [
-
         "🧹 Cleaning",
-
         "🔡 Case Folding",
-
         "🔄 Normalization",
-
         "🚫 Stopword",
-
         "🌱 Stemming",
-
         "✂️ Tokenization"
-
     ]
-
 )
+
+# =====================================================
+# TAB 1
+# =====================================================
+
 with tab1:
 
     st.subheader("Cleaning")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
                 text_column,
-
                 "cleaning"
-
             ]
-
         ],
-
         use_container_width=True
-
     )
-    with tab2:
+
+# =====================================================
+# TAB 2
+# =====================================================
+
+with tab2:
 
     st.subheader("Case Folding")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
                 "cleaning",
-
                 "case_folding"
-
             ]
-
         ],
-
         use_container_width=True
-
     )
-    with tab3:
+
+# =====================================================
+# TAB 3
+# =====================================================
+
+with tab3:
 
     st.subheader("Normalization")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
                 "case_folding",
-
                 "normalization"
-
             ]
-
         ],
-
         use_container_width=True
-
     )
-    with tab4:
+
+# =====================================================
+# TAB 4
+# =====================================================
+
+with tab4:
 
     st.subheader("Stopword Removal")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
                 "normalization",
-
                 "stopword"
-
             ]
-
         ],
-
         use_container_width=True
-
     )
-   with tab5:
+
+# =====================================================
+# TAB 5
+# =====================================================
+
+with tab5:
 
     st.subheader("Stemming")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
                 "stopword",
-
                 "stemming"
-
             ]
-
         ],
-
         use_container_width=True
-
     )
-       with tab5:
 
-    st.subheader("Stemming")
+# =====================================================
+# TAB 6
+# =====================================================
+
+with tab6:
+
+    st.subheader("Tokenization")
 
     st.dataframe(
-
         preprocess_df[
-
             [
-
-                "stopword",
-
-                "stemming"
-
+                "stemming",
+                "token"
             ]
-
         ],
-
         use_container_width=True
-
     )
+
+# =====================================================
+# DOWNLOAD
+# =====================================================
+
+st.markdown("---")
+
+st.download_button(
+    "⬇ Download Hasil Preprocessing",
+    data=download_csv(preprocess_df),
+    file_name="preprocessing.csv",
+    mime="text/csv",
+    use_container_width=True
+)
