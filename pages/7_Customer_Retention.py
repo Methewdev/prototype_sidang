@@ -49,7 +49,7 @@ if st.button(
     use_container_width=True
 ):
 
-    retention_df = customer_retention(segmentation_df)
+    retention_df = segmentation_df.copy()
 
     save_session(
         "retention_df",
