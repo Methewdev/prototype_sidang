@@ -58,22 +58,13 @@ if uploaded_file is not None:
 
             save_session("raw_df", df)
 
-        st.success("Dataset berhasil diupload.")
+        st.success("✅ Dataset berhasil diupload.")
 
     except Exception as e:
 
-        st.error(e)
+        st.error(f"Gagal membaca dataset: {e}")
 
         st.stop()
-
-    # Metric
-    info = dataset_info(df)
-
-    ...
-
-else:
-
-    st.warning("Silakan upload dataset.")
 
     # =====================================================
     # METRIC
@@ -83,30 +74,18 @@ else:
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric(
-        "📄 Jumlah Review",
-        info["rows"]
-    )
+    c1.metric("📄 Jumlah Review", info["rows"])
 
-    c2.metric(
-        "📑 Jumlah Kolom",
-        info["columns"]
-    )
+    c2.metric("📑 Jumlah Kolom", info["columns"])
 
-    c3.metric(
-        "❗ Missing Value",
-        info["missing"]
-    )
+    c3.metric("❗ Missing Value", info["missing"])
 
-    c4.metric(
-        "📌 Duplicate",
-        info["duplicate"]
-    )
+    c4.metric("📌 Duplicate", info["duplicate"])
 
     st.markdown("---")
 
     # =====================================================
-    # PREVIEW DATASET
+    # PREVIEW
     # =====================================================
 
     st.subheader("📄 Preview Dataset")
@@ -146,4 +125,4 @@ else:
 
 else:
 
-    st.warning("Silakan upload dataset terlebih dahulu.")
+    st.info("📂 Silakan upload dataset terlebih dahulu.")
