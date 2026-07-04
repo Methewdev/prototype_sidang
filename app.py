@@ -57,42 +57,42 @@ with st.sidebar:
     st.markdown("## Workflow")
 
     st.page_link(
-        "pages/1_Upload_Dataset.py",
+        "page/1_Upload_Dataset.py",
         label="📂 Upload Dataset"
     )
 
     st.page_link(
-        "pages/2_Data_Understanding.py",
+        "page/2_Data_Understanding.py",
         label="📊 Data Understanding"
     )
 
     st.page_link(
-        "pages/3_Preprocessing.py",
+        "page/3_Preprocessing.py",
         label="🧹 Preprocessing"
     )
 
     st.page_link(
-        "pages/4_Emotion_Prediction.py",
+        "page/4_Emotion_Prediction.py",
         label="🤖 Emotion Prediction"
     )
 
     st.page_link(
-        "pages/5_Emotion_Probability.py",
+        "page/5_Emotion_Probability.py",
         label="📈 Emotion Probability"
     )
 
     st.page_link(
-        "pages/6_Customer_Segmentation.py",
+        "page/6_Customer_Segmentation.py",
         label="👥 Customer Segmentation"
     )
 
     st.page_link(
-        "pages/7_Customer_Retention.py",
+        "page/7_Customer_Retention.py",
         label="💡 Customer Retention"
     )
 
     st.page_link(
-        "pages/8_Dashboard.py",
+        "page/8_Dashboard.py",
         label="📊 Dashboard"
     )
 
