@@ -1,13 +1,11 @@
 """
 =========================================================
 LIVIN EMOTION ANALYSIS
-=========================================================
 Main Application
 =========================================================
 """
 
 import streamlit as st
-from pathlib import Path
 
 from config import (
     APP_TITLE,
@@ -32,7 +30,9 @@ st.set_page_config(
 # =====================================================
 
 if CSS_FILE.exists():
-    with open(CSS_FILE, encoding="utf-8") as f:
+
+    with open(CSS_FILE, "r", encoding="utf-8") as f:
+
         st.markdown(
             f"<style>{f.read()}</style>",
             unsafe_allow_html=True
@@ -45,107 +45,128 @@ if CSS_FILE.exists():
 with st.sidebar:
 
     if LOGO.exists():
-        st.image(str(LOGO), use_container_width=True)
 
-    st.title("Livin Emotion Analysis")
+        st.image(str(LOGO), width=180)
+
+    st.title(APP_TITLE)
 
     st.markdown("---")
 
     st.success("Version 1.0")
 
-    st.markdown(
-        """
-### Workflow
+    st.markdown("## Workflow")
 
-1. 📥 Upload Dataset
-2. 📊 Data Understanding
-3. 🧹 Preprocessing
-4. 🤖 Emotion Prediction
-5. 📈 Emotion Probability
-6. 👥 Customer Segmentation
-7. 💡 Customer Retention
-8. 📊 Dashboard
-"""
+    st.page_link(
+        "pages/1_📂_Upload_Dataset.py",
+        label="📂 Upload Dataset"
+    )
+
+    st.page_link(
+        "pages/2_📊_Data_Understanding.py",
+        label="📊 Data Understanding"
+    )
+
+    st.page_link(
+        "pages/3_🧹_Preprocessing.py",
+        label="🧹 Preprocessing"
+    )
+
+    st.page_link(
+        "pages/4_🤖_Emotion_Prediction.py",
+        label="🤖 Emotion Prediction"
+    )
+
+    st.page_link(
+        "pages/5_📈_Emotion_Probability.py",
+        label="📈 Emotion Probability"
+    )
+
+    st.page_link(
+        "pages/6_👥_Customer_Segmentation.py",
+        label="👥 Customer Segmentation"
+    )
+
+    st.page_link(
+        "pages/7_💡_Customer_Retention.py",
+        label="💡 Customer Retention"
+    )
+
+    st.page_link(
+        "pages/8_📊_Dashboard.py",
+        label="📊 Dashboard"
     )
 
 # =====================================================
-# MAIN PAGE
+# HOME
 # =====================================================
 
 st.title("📊 Livin Emotion Analysis")
 
+st.markdown("---")
+
 st.markdown(
 """
-Aplikasi ini digunakan untuk melakukan analisis emosi pada ulasan
-pengguna aplikasi **Livin' by Mandiri** menggunakan model
+Aplikasi ini digunakan untuk melakukan analisis emosi ulasan
+Google Play **Livin' by Mandiri** menggunakan
 **Fine-Tuned IndoBERT**.
 
-Tahapan analisis meliputi:
+### Tahapan Analisis
 
-- Upload Dataset
-- Data Understanding
-- Text Preprocessing
-- Emotion Prediction
-- Emotion Probability
-- Customer Segmentation
-- Customer Retention
-- Dashboard Analytics
+1. Upload Dataset
+2. Data Understanding
+3. Text Preprocessing
+4. Emotion Prediction
+5. Emotion Probability
+6. Customer Segmentation
+7. Customer Retention
+8. Dashboard Analytics
 """
 )
 
 st.markdown("---")
 
-# =====================================================
-# INFORMATION
-# =====================================================
-
 col1, col2, col3 = st.columns(3)
 
-col1.info(
+with col1:
+
+    st.info(
 """
 ### 🤖 Model
 
 Fine-Tuned IndoBERT
 """
-)
+    )
 
-col2.info(
+with col2:
+
+    st.info(
 """
 ### 📄 Dataset
 
 Google Play Review
 """
-)
+    )
 
-col3.info(
+with col3:
+
+    st.info(
 """
 ### 🎯 Output
 
-Emotion Analysis &
+Emotion Classification
+
 Customer Segmentation
+
+Customer Retention
 """
-)
+    )
 
 st.markdown("---")
 
-st.subheader("📌 Navigation")
-
-st.markdown(
+st.success(
 """
-Gunakan menu pada **sidebar** untuk memulai proses analisis.
-
-Urutan penggunaan aplikasi:
-
-1. Upload Dataset
-2. Data Understanding
-3. Preprocessing
-4. Emotion Prediction
-5. Customer Segmentation
-6. Customer Retention
-7. Dashboard
+Silakan pilih menu pada sidebar untuk memulai analisis.
 """
 )
 
-st.markdown("---")
-
-st.caption("© 2026 Livin Emotion Analysis | Thesis Project")
+st.caption("© 2026 Livin Emotion Analysis")
