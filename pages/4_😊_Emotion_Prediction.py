@@ -23,6 +23,10 @@ from modules.visualization import (
     confidence_histogram
 )
 
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
 st.set_page_config(
     page_title="Emotion Prediction",
     page_icon="🤖",
@@ -32,14 +36,16 @@ st.set_page_config(
 st.title("🤖 Emotion Prediction")
 
 st.markdown("---")
+
 # =====================================================
-# LOAD PREPROCESSING
+# LOAD PREPROCESSING RESULT
 # =====================================================
 
 df = require_session(
     "preprocess_df",
     "Silakan lakukan preprocessing terlebih dahulu."
 )
+
 # =====================================================
 # RUN PREDICTION
 # =====================================================
@@ -61,10 +67,10 @@ if st.button(
             prediction_df
         )
 
- st.success("Prediction selesai.")
+    st.success("Prediction selesai.")
 
 # =====================================================
-# DISPLAY
+# CHECK SESSION
 # =====================================================
 
 if "prediction_df" not in st.session_state:
@@ -77,12 +83,15 @@ if "prediction_df" not in st.session_state:
 
 prediction_df = st.session_state["prediction_df"]
 
-prediction_df = st.session_state["prediction_df"]
+# =====================================================
+# SUMMARY
+# =====================================================
+
 summary = prediction_summary(
     prediction_df
 )
 
-col1,col2,col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
 col1.metric(
     "Total Review",
@@ -98,124 +107,101 @@ col3.metric(
     "Average Confidence",
     f"{summary['Average Confidence']} %"
 )
+
 st.markdown("---")
+
+# =====================================================
+# RESULT TABLE
+# =====================================================
 
 st.subheader("Prediction Result")
 
 st.dataframe(
-
     prediction_df[
-
         [
-
             "content",
-
             "emotion",
-
             "confidence"
-
         ]
-
     ],
-
     use_container_width=True,
-
     height=450
-
 )
+
 st.markdown("---")
 
-left,right = st.columns(2)
+# =====================================================
+# VISUALIZATION
+# =====================================================
+
+left, right = st.columns(2)
 
 with left:
 
     st.plotly_chart(
-
         emotion_bar(prediction_df),
-
         use_container_width=True
-
     )
 
 with right:
 
     st.plotly_chart(
-
         emotion_pie(prediction_df),
-
         use_container_width=True
-
     )
-    st.markdown("---")
+
+st.markdown("---")
 
 st.subheader("Confidence Distribution")
 
 st.plotly_chart(
-
     confidence_histogram(
         prediction_df
     ),
-
     use_container_width=True
-
 )
+
 st.markdown("---")
+
+# =====================================================
+# EMOTION DISTRIBUTION
+# =====================================================
 
 st.subheader("Emotion Distribution")
 
 emotion_table = (
-
-    prediction_df
-
-    ["emotion"]
-
+    prediction_df["emotion"]
     .value_counts()
-
     .reset_index()
-
 )
 
-emotion_table.columns=[
-
+emotion_table.columns = [
     "Emotion",
-
     "Total"
-
 ]
 
-emotion_table["Percentage"]=(
-
+emotion_table["Percentage"] = (
     emotion_table["Total"]
-
     /
-
     emotion_table["Total"].sum()
-
-    *100
-
+    * 100
 ).round(2)
 
 st.dataframe(
-
     emotion_table,
-
     use_container_width=True
-
 )
+
 st.markdown("---")
 
+# =====================================================
+# DOWNLOAD
+# =====================================================
+
 st.download_button(
-
-    "⬇ Download Prediction Result",
-
-    download_csv(
-
-        prediction_df
-
-    ),
-
-    "prediction.csv",
-
-    "text/csv"
-
+    label="⬇ Download Prediction Result",
+    data=download_csv(prediction_df),
+    file_name="prediction.csv",
+    mime="text/csv",
+    use_container_width=True
 )
