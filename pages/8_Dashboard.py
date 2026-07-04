@@ -189,13 +189,6 @@ if "Retention Strategy" in retention_df.columns:
         ]
         if c in retention_df.columns
     ]
-
-    st.dataframe(
-        retention_df[cols].drop_duplicates(),
-        use_container_width=True,
-        hide_index=True
-    )
-
 st.markdown("---")
 
 # =====================================================
