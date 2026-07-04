@@ -40,23 +40,6 @@ if CSS_FILE.exists():
 # SIDEBAR
 # =====================================================
 
-with st.sidebar:
-
-    if LOGO.exists():
-        st.image(str(LOGO), use_container_width=True)
-
-    st.title(APP_TITLE)
-
-    st.markdown("---")
-
-    st.success("Version 1.0")
-
-    st.markdown(
-        """
-### Workflow
-
-    )
-
 # =====================================================
 # HOME
 # =====================================================
