@@ -14,28 +14,57 @@ import pandas as pd
 
 RETENTION_RULE = {
 
+  RETENTION_RULE = {
+
     "😊 Nasabah Puas": {
+
         "Priority": "Low",
+
         "Retention Strategy":
-        "Berikan reward, loyalty program, cashback, dan pertahankan kualitas layanan."
+        "Berikan reward, loyalty program, cashback, dan pertahankan kualitas layanan.",
+
+        "Recommended Action":
+        "Loyalty Program"
+
     },
 
     "😐 Nasabah Passive": {
+
         "Priority": "Medium",
+
         "Retention Strategy":
-        "Tingkatkan engagement melalui edukasi fitur, personalisasi promosi, dan komunikasi berkala."
+        "Tingkatkan engagement melalui edukasi fitur dan personalisasi promosi.",
+
+        "Recommended Action":
+        "Engagement Campaign"
+
     },
 
     "😟 Nasabah Tidak Puas": {
+
         "Priority": "High",
+
         "Retention Strategy":
-        "Tindak lanjuti keluhan pelanggan, lakukan follow-up secara proaktif, dan tingkatkan kualitas layanan."
+        "Tindak lanjuti keluhan pelanggan dan tingkatkan kualitas layanan.",
+
+        "Recommended Action":
+        "Customer Service Follow-up"
+
     },
 
     "😠 Nasabah Frustasi": {
+
         "Priority": "Very High",
+
         "Retention Strategy":
-        "Prioritaskan penyelesaian masalah, lakukan eskalasi ke tim terkait, hubungi pelanggan secara proaktif, berikan kompensasi bila diperlukan, dan lakukan monitoring hingga masalah selesai."
+        "Prioritaskan penyelesaian masalah, customer service proaktif, dan kompensasi bila diperlukan.",
+
+        "Recommended Action":
+        "Immediate Recovery"
+
+    }
+
+}
     }
 
 }
