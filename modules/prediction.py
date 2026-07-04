@@ -20,22 +20,66 @@ from config import (
 # =====================================================
 
 tokenizer, model, device = load_model()
-
 model.eval()
+
+# =====================================================
+# VALIDATE TEXT
+# =====================================================
+
+def validate_prediction_text(text):
+
+    if text is None:
+        return ""
+
+    return str(text).strip()
+
+
+# =====================================================
+# FORMAT PROBABILITY
+# =====================================================
+
+def format_probability(probability):
+
+    return {
+
+        label: float(prob)
+
+        for label, prob in zip(
+
+            EMOTION_LABELS,
+
+            probability
+
+        )
+
+    }
+
+
 # =====================================================
 # PREDICT SINGLE TEXT
 # =====================================================
 
 def predict_text(text):
 
-    """
-    Predict emotion from a single text.
-    """
+    text = validate_prediction_text(text)
 
-    if text is None:
-        text = ""
+    if text == "":
 
-    text = str(text).strip()
+        return {
+
+            "emotion": "-",
+
+            "confidence": 0.0,
+
+            "probability": {
+
+                label: 0.0
+
+                for label in EMOTION_LABELS
+
+            }
+
+        }
 
     encoding = tokenizer(
 
@@ -77,24 +121,27 @@ def predict_text(text):
 
     )
 
-    emotion = EMOTION_LABELS[prediction]
-
-    confidence = float(
-
-        probability[prediction]
-
-    )
-
     return {
 
-        "emotion": emotion,
+        "emotion": EMOTION_LABELS[prediction],
 
-        "confidence": confidence,
+        "confidence": float(probability[prediction]),
 
-        "probability": probability
+        "probability": format_probability(probability)
 
     }
-  # =====================================================
+
+
+# =====================================================
+# PREDICT SINGLE REVIEW
+# =====================================================
+
+def predict_single_review(text):
+
+    return predict_text(text)
+
+
+# =====================================================
 # PREDICT BATCH
 # =====================================================
 
@@ -102,7 +149,7 @@ def predict_batch(texts):
 
     if len(texts) == 0:
 
-        return []
+        return np.array([])
 
     encoding = tokenizer(
 
@@ -139,7 +186,9 @@ def predict_batch(texts):
     ).cpu().numpy()
 
     return probability
-  # =====================================================
+
+
+# =====================================================
 # PREDICT DATAFRAME
 # =====================================================
 
@@ -154,6 +203,14 @@ def predict_dataframe(
 ):
 
     data = df.copy()
+
+    if text_column not in data.columns:
+
+        raise ValueError(
+
+            f"Kolom '{text_column}' tidak ditemukan."
+
+        )
 
     texts = (
 
@@ -191,7 +248,7 @@ def predict_dataframe(
 
         probs = predict_batch(batch)
 
-        prediction = np.argmax(
+        predictions = np.argmax(
 
             probs,
 
@@ -201,7 +258,7 @@ def predict_dataframe(
 
         for pred, prob in zip(
 
-            prediction,
+            predictions,
 
             probs
 
@@ -240,36 +297,80 @@ def predict_dataframe(
         data[label] = probability_result[:, i]
 
     return data
-  # =====================================================
+
+
+# =====================================================
 # SUMMARY
 # =====================================================
 
 def prediction_summary(df):
 
+    if df.empty:
+
+        return {
+
+            "Total Review": 0,
+
+            "Dominant Emotion": "-",
+
+            "Average Confidence": 0
+
+        }
+
     return {
 
-        "Total Review":
+        "Total Review": len(df),
 
-            len(df),
+        "Dominant Emotion": df["emotion"].mode()[0],
 
-        "Dominant Emotion":
+        "Average Confidence": round(
 
-            df["emotion"]
+            df["confidence"].mean() * 100,
 
-            .mode()[0],
+            2
 
-        "Average Confidence":
-
-            round(
-
-                df["confidence"]
-
-                .mean()
-
-                *100,
-
-                2
-
-            )
+        )
 
     }
+
+
+# =====================================================
+# TOP PREDICTION
+# =====================================================
+
+def top_prediction(result):
+
+    return {
+
+        "emotion": result["emotion"],
+
+        "confidence": round(
+
+            result["confidence"] * 100,
+
+            2
+
+        )
+
+    }
+
+
+# =====================================================
+# EXPORT
+# =====================================================
+
+__all__ = [
+
+    "predict_text",
+
+    "predict_single_review",
+
+    "predict_batch",
+
+    "predict_dataframe",
+
+    "prediction_summary",
+
+    "top_prediction"
+
+]
