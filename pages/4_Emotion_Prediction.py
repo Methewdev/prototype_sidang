@@ -166,42 +166,5 @@ st.dataframe(
 st.markdown("---")
 
 # =====================================================
-# VIEW REVIEW
-# =====================================================
-
-st.subheader("👁 View Review")
-
-selected = st.selectbox(
-    "Pilih Review",
-    prediction_display["prediction_id"]
-)
-
-row = prediction_df[
-    prediction_df["prediction_id"] == selected
-].iloc[0]
-
-st.markdown("### 📝 Original Review")
-st.info(row["content"])
-
-st.markdown("### 🧹 Final Text")
-st.code(row["final_text"])
-
-c1, c2 = st.columns(2)
-
-with c1:
-    st.metric(
-        "Emotion",
-        row["emotion"]
-    )
-
-with c2:
-    st.metric(
-        "Confidence",
-        f"{row['confidence'] * 100:.2f}%"
-    )
-
-st.markdown("---")
-
-# =====================================================
 # VISUALIZATION
 # =====================================================
