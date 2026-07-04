@@ -14,7 +14,7 @@ import pandas as pd
 
 RETENTION_RULE = {
 
-    "😊 Loyal Customer": {
+    "😊 Nasabah Puas": {
 
         "Priority": "Low",
 
@@ -23,7 +23,7 @@ RETENTION_RULE = {
 
     },
 
-    "😐 Passive Customer": {
+    "😐 Nasabah Passive ": {
 
         "Priority": "Medium",
 
@@ -32,7 +32,7 @@ RETENTION_RULE = {
 
     },
 
-    "😟 Unsatisfied Customer": {
+    "😟 Nasabah Tidak Puas": {
 
         "Priority": "High",
 
@@ -41,7 +41,7 @@ RETENTION_RULE = {
 
     },
 
-    "😠 At-Risk Customer": {
+    "😠 Nasabah Frustasi": {
 
         "Priority": "Critical",
 
