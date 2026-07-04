@@ -43,7 +43,7 @@ RETENTION_RULE = {
 
     "😠 Nasabah Frustasi": {
 
-        "Priority": "Critical",
+        "Priority": "Very High",
 
         "Retention Strategy":
         "Prioritaskan penyelesaian masalah, customer service proaktif, dan kompensasi bila diperlukan."
