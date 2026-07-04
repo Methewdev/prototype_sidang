@@ -4,14 +4,7 @@ CUSTOMER RETENTION
 =========================================================
 """
 
-from modules.retention import (
-    customer_retention,
-    retention_summary,
-    retention_statistics,
-    strategy_table,
-    priority_distribution
-
-)
+import streamlit as st
 
 from modules.utils import (
     require_session,
@@ -25,6 +18,10 @@ from modules.retention import (
     retention_statistics
 )
 
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
 st.set_page_config(
     page_title="Customer Retention",
     page_icon="💡",
@@ -32,31 +29,38 @@ st.set_page_config(
 )
 
 st.title("💡 Customer Retention")
-
 st.markdown("---")
+
+# =====================================================
+# LOAD SEGMENTATION
+# =====================================================
 
 segmentation_df = require_session(
     "segmentation_df",
     "Silakan lakukan Customer Segmentation terlebih dahulu."
 )
 
+# =====================================================
+# GENERATE RETENTION
+# =====================================================
+
 if st.button(
     "🚀 Generate Customer Retention",
     use_container_width=True
 ):
 
-    retention_df = customer_retention(
-        segmentation_df
-    )
+    retention_df = customer_retention(segmentation_df)
 
     save_session(
         "retention_df",
         retention_df
     )
 
-    st.success(
-        "Customer Retention berhasil dibuat."
-    )
+    st.success("Customer Retention berhasil dibuat.")
+
+# =====================================================
+# CHECK SESSION
+# =====================================================
 
 if "retention_df" not in st.session_state:
 
@@ -68,34 +72,38 @@ if "retention_df" not in st.session_state:
 
 retention_df = st.session_state["retention_df"]
 
-stat = retention_statistics(
-    retention_df
-)
+# =====================================================
+# STATISTICS
+# =====================================================
+
+stat = retention_statistics(retention_df)
 
 c1, c2, c3 = st.columns(3)
 
 c1.metric(
     "Total Customer",
-    stat["Total Customer"]
+    stat.get("Total Customer", 0)
 )
 
 c2.metric(
     "Customer Type",
-    stat["Customer Type"]
+    stat.get("Customer Type", "-")
 )
 
 c3.metric(
     "Highest Risk",
-    stat["Highest Risk"]
+    stat.get("Highest Risk", "-")
 )
 
 st.markdown("---")
 
+# =====================================================
+# SUMMARY
+# =====================================================
+
 st.subheader("Retention Summary")
 
-summary = retention_summary(
-    retention_df
-)
+summary = retention_summary(retention_df)
 
 st.dataframe(
     summary,
@@ -104,17 +112,23 @@ st.dataframe(
 
 st.markdown("---")
 
+# =====================================================
+# DETAIL
+# =====================================================
+
 st.subheader("Retention Recommendation")
 
 display_columns = [
-    col for col in [
-        "content",
-        "emotion",
-        "Customer Type",
-        "Risk Level",
-        "Retention Strategy"
-    ]
-    if col in retention_df.columns
+    "content",
+    "emotion",
+    "Customer Type",
+    "Risk Level",
+    "Retention Strategy"
+]
+
+display_columns = [
+    c for c in display_columns
+    if c in retention_df.columns
 ]
 
 st.dataframe(
@@ -124,6 +138,10 @@ st.dataframe(
 )
 
 st.markdown("---")
+
+# =====================================================
+# DOWNLOAD
+# =====================================================
 
 st.download_button(
     label="⬇ Download Customer Retention",
