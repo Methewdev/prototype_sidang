@@ -7,8 +7,6 @@ UPLOAD DATASET
 import streamlit as st
 import pandas as pd
 
-from config import *
-
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
@@ -23,12 +21,10 @@ st.title("📂 Upload Dataset")
 
 st.markdown("---")
 
-st.write(
-"""
+st.write("""
 Silakan upload dataset hasil scraping Google Play
-dalam format CSV atau Excel.
-"""
-)
+dalam format CSV (.csv) atau Excel (.xlsx).
+""")
 
 # ==========================================================
 # INITIAL SESSION
@@ -38,134 +34,117 @@ if "raw_df" not in st.session_state:
     st.session_state["raw_df"] = None
 
 # ==========================================================
-# FILE UPLOADER
+# READ DATASET
 # ==========================================================
 
-uploaded_file = st.file_uploader(
+def read_dataset(uploaded_file):
 
-    "Upload Dataset",
+    if uploaded_file.name.lower().endswith(".xlsx"):
+        return pd.read_excel(uploaded_file)
 
-    type=["csv","xlsx"]
+    read_options = [
 
-)
+        {"sep": ",", "encoding": "utf-8"},
 
-# ==========================================================
-# LOAD FILE
-# ==========================================================
+        {"sep": ";", "encoding": "utf-8"},
 
-if uploaded_file.name.endswith(".csv"):
+        {"sep": ",", "encoding": "latin1"},
 
-    try:
-        # Coba delimiter koma
-        df = pd.read_csv(
-            uploaded_file,
-            encoding="utf-8"
-        )
+        {"sep": ";", "encoding": "latin1"},
 
-    except Exception:
+        {"sep": None, "engine": "python"}
+
+    ]
+
+    for option in read_options:
 
         uploaded_file.seek(0)
 
         try:
-            # Coba delimiter titik koma
-            df = pd.read_csv(
-                uploaded_file,
-                sep=";",
-                encoding="utf-8"
-            )
+
+            return pd.read_csv(uploaded_file, **option)
 
         except Exception:
 
-            uploaded_file.seek(0)
+            continue
 
-            try:
-                # Coba encoding latin1
-                df = pd.read_csv(
-                    uploaded_file,
-                    encoding="latin1"
-                )
+    raise ValueError(
+        "File CSV tidak dapat dibaca."
+    )
 
-            except Exception:
+# ==========================================================
+# FILE UPLOADER
+# ==========================================================
 
-                uploaded_file.seek(0)
+uploaded_file = st.file_uploader(
+    "Upload Dataset",
+    type=["csv", "xlsx"]
+)
 
-                # Deteksi otomatis delimiter
-                df = pd.read_csv(
-                    uploaded_file,
-                    sep=None,
-                    engine="python"
-                )
+# ==========================================================
+# LOAD DATASET
+# ==========================================================
 
-else:
+if uploaded_file is not None:
 
-    df = pd.read_excel(uploaded_file)
+    try:
+
+        df = read_dataset(uploaded_file)
+
+        # ===============================
+        # SAVE SESSION
+        # ===============================
+
+        st.session_state["raw_df"] = df
+
+        st.success("✅ Dataset berhasil diupload.")
+
+    except Exception as e:
+
+        st.error(f"Gagal membaca dataset : {e}")
+
+        st.stop()
 
 # ==========================================================
 # DISPLAY DATA
 # ==========================================================
 
-if st.session_state["raw_df"] is not None:
+df = st.session_state.get("raw_df")
 
-    df = st.session_state["raw_df"]
-
-    st.success("Dataset berhasil diupload")
+if df is not None and isinstance(df, pd.DataFrame):
 
     st.markdown("---")
 
-    col1,col2,col3,col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
+    col1.metric(
+        "Jumlah Review",
+        len(df)
+    )
 
-        st.metric(
+    col2.metric(
+        "Jumlah Kolom",
+        len(df.columns)
+    )
 
-            "Jumlah Review",
+    col3.metric(
+        "Missing Value",
+        int(df.isnull().sum().sum())
+    )
 
-            len(df)
-
-        )
-
-    with col2:
-
-        st.metric(
-
-            "Jumlah Kolom",
-
-            len(df.columns)
-
-        )
-
-    with col3:
-
-        st.metric(
-
-            "Missing Value",
-
-            df.isnull().sum().sum()
-
-        )
-
-    with col4:
-
-        st.metric(
-
-            "Duplicate",
-
-            df.duplicated().sum()
-
-        )
+    col4.metric(
+        "Duplicate",
+        int(df.duplicated().sum())
+    )
 
     st.markdown("---")
 
     st.subheader("Preview Dataset")
 
     st.dataframe(
-
         df,
-
         use_container_width=True,
-
-        height=500
-
+        height=450
     )
 
     st.markdown("---")
@@ -174,29 +153,30 @@ if st.session_state["raw_df"] is not None:
 
     info = pd.DataFrame({
 
-        "Column":df.columns,
+        "Column": df.columns,
 
-        "Data Type":df.dtypes.astype(str),
+        "Data Type": df.dtypes.astype(str),
 
-        "Missing":df.isnull().sum().values
+        "Missing": df.isnull().sum().values
 
     })
 
     st.dataframe(
-
         info,
-
         use_container_width=True
-
     )
 
     st.markdown("---")
+
+    csv = df.to_csv(
+        index=False
+    ).encode("utf-8-sig")
 
     st.download_button(
 
         "⬇ Download Dataset",
 
-        data=df.to_csv(index=False),
+        csv,
 
         file_name="uploaded_dataset.csv",
 
@@ -206,4 +186,4 @@ if st.session_state["raw_df"] is not None:
 
 else:
 
-    st.info("Silakan upload dataset terlebih dahulu.")
+    st.info("📂 Silakan upload dataset terlebih dahulu.")
