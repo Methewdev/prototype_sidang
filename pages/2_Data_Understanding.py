@@ -7,13 +7,13 @@ DATA UNDERSTANDING
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from wordcloud import WordCloud
 
-from modules.utils import (
-    require_session,
-    detect_text_column
-)
+from modules.utils import require_session
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 
 st.set_page_config(
     page_title="Data Understanding",
@@ -22,47 +22,62 @@ st.set_page_config(
 )
 
 st.title("📊 Data Understanding")
+st.caption("Eksplorasi dataset hasil scraping Google Play Store")
 
-st.markdown("---")
+st.divider()
 
 # =====================================================
-# LOAD DATASET
+# LOAD DATA
 # =====================================================
 
 df = require_session(
-    "raw_df",
-    "Silakan upload dataset terlebih dahulu."
+    "raw_data",
+    "Silakan lakukan scraping terlebih dahulu pada menu Live Scraper."
 )
-
-text_column = detect_text_column(df)
 
 # =====================================================
-# METRIC
+# METRICS
 # =====================================================
 
-c1, c2, c3, c4 = st.columns(4)
-
-c1.metric(
-    "Total Review",
-    len(df)
+latest = (
+    df["date"].max().strftime("%d-%m-%Y")
+    if "date" in df.columns and not df.empty
+    else "-"
 )
 
-c2.metric(
-    "Total Column",
-    len(df.columns)
+oldest = (
+    df["date"].min().strftime("%d-%m-%Y")
+    if "date" in df.columns and not df.empty
+    else "-"
 )
 
-c3.metric(
-    "Missing Value",
-    int(df.isnull().sum().sum())
+avg_rating = (
+    round(df["rating"].mean(), 2)
+    if "rating" in df.columns
+    else 0
 )
 
-c4.metric(
-    "Duplicate",
-    int(df.duplicated().sum())
+version = (
+    df["app_version"].nunique()
+    if "app_version" in df.columns
+    else 0
 )
 
-st.markdown("---")
+reply = (
+    df["developer_reply"].notna().sum()
+    if "developer_reply" in df.columns
+    else 0
+)
+
+c1, c2, c3, c4, c5 = st.columns(5)
+
+c1.metric("Total Review", len(df))
+c2.metric("Average Rating", avg_rating)
+c3.metric("Latest Review", latest)
+c4.metric("Oldest Review", oldest)
+c5.metric("App Version", version)
+
+st.divider()
 
 # =====================================================
 # DATASET PREVIEW
@@ -72,11 +87,12 @@ st.subheader("📄 Dataset Preview")
 
 st.dataframe(
     df,
-    use_container_width=True,
+    width="stretch",
+    hide_index=True,
     height=450
 )
 
-st.markdown("---")
+st.divider()
 
 # =====================================================
 # COLUMN INFORMATION
@@ -85,173 +101,223 @@ st.markdown("---")
 st.subheader("📋 Column Information")
 
 info = pd.DataFrame({
-
     "Column": df.columns,
-
     "Data Type": df.dtypes.astype(str),
-
-    "Missing":
-
-        df.isnull().sum().values,
-
-    "Unique":
-
-        df.nunique().values
-
+    "Missing": df.isnull().sum().values,
+    "Unique": df.nunique().values
 })
 
 st.dataframe(
     info,
-    use_container_width=True
+    width="stretch",
+    hide_index=True
 )
 
-st.markdown("---")
-
-# =====================================================
-# MISSING VALUE
-# =====================================================
-
-st.subheader("❌ Missing Value Analysis")
-
-missing = pd.DataFrame({
-
-    "Column": df.columns,
-
-    "Missing":
-
-        df.isnull().sum().values,
-
-    "Percentage":
-
-        (
-
-            df.isnull().sum()
-
-            / len(df)
-
-            *100
-
-        ).round(2)
-
-})
-
-st.dataframe(
-    missing,
-    use_container_width=True
-)
-
-st.markdown("---")
-
-# =====================================================
-# DUPLICATE
-# =====================================================
-
-st.subheader("🔄 Duplicate Analysis")
-
-duplicate = df[df.duplicated()]
-
-st.metric(
-    "Duplicate Data",
-    len(duplicate)
-)
-
-if len(duplicate):
-
-    st.dataframe(
-        duplicate,
-        use_container_width=True
-    )
-
-else:
-
-    st.success(
-        "Tidak ditemukan data duplikat."
-    )
-
-st.markdown("---")
-
-# =====================================================
-# REVIEW LENGTH
-# =====================================================
-
-st.subheader("📏 Review Length Analysis")
-
-if text_column:
-
-    length = (
-
-        df[text_column]
-
-        .fillna("")
-
-        .astype(str)
-
-        .str.split()
-
-        .apply(len)
-
-    )
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.metric(
-        "Average",
-        round(length.mean(),2)
-    )
-
-    c2.metric(
-        "Minimum",
-        int(length.min())
-    )
-
-    c3.metric(
-        "Maximum",
-        int(length.max())
-    )
-
-    fig, ax = plt.subplots()
-
-    ax.hist(length)
-
-    ax.set_title("Review Length Distribution")
-
-    st.pyplot(fig)
-
-st.markdown("---")
+st.divider()
 
 # =====================================================
 # RATING DISTRIBUTION
 # =====================================================
 
-if "score" in df.columns:
+if "rating" in df.columns:
 
     st.subheader("⭐ Rating Distribution")
 
     rating = (
-
-        df["score"]
-
+        df["rating"]
         .value_counts()
-
         .sort_index()
-
     )
 
     st.bar_chart(rating)
 
-    st.markdown("---")
+st.divider()
+
+# =====================================================
+# REVIEW TIMELINE
+# =====================================================
+
+if "date" in df.columns:
+
+    st.subheader("📅 Review Timeline")
+
+    timeline = (
+        df.groupby(df["date"].dt.date)
+        .size()
+    )
+
+    st.line_chart(timeline)
+
+st.divider()
+
+# =====================================================
+# APP VERSION
+# =====================================================
+
+if "app_version" in df.columns:
+
+    st.subheader("📱 App Version Distribution")
+
+    version = (
+        df["app_version"]
+        .fillna("Unknown")
+        .value_counts()
+        .head(10)
+    )
+
+    st.bar_chart(version)
+
+st.divider()
+
+# =====================================================
+# REVIEW LENGTH
+# =====================================================
+
+if "review" in df.columns:
+
+    st.subheader("📏 Review Length Analysis")
+
+    length = (
+        df["review"]
+        .fillna("")
+        .astype(str)
+        .str.split()
+        .apply(len)
+    )
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("Average", round(length.mean(), 2))
+    c2.metric("Minimum", int(length.min()))
+    c3.metric("Maximum", int(length.max()))
+
+    fig, ax = plt.subplots(figsize=(8,4))
+
+    ax.hist(length)
+
+    ax.set_xlabel("Jumlah Kata")
+
+    ax.set_ylabel("Jumlah Review")
+
+    st.pyplot(fig)
+
+st.divider()
+
+# =====================================================
+# MISSING VALUE
+# =====================================================
+
+st.subheader("❌ Missing Value")
+
+missing = pd.DataFrame({
+
+    "Column": df.columns,
+
+    "Missing": df.isnull().sum().values,
+
+    "Percentage": (
+
+        df.isnull().sum()
+
+        / len(df)
+
+        *100
+
+    ).round(2)
+
+})
+
+st.dataframe(
+    missing,
+    width="stretch",
+    hide_index=True
+)
+
+st.divider()
+
+# =====================================================
+# DUPLICATE
+# =====================================================
+
+st.subheader("🔄 Duplicate Review")
+
+duplicate = df.duplicated(subset="review").sum()
+
+st.metric(
+    "Duplicate Review",
+    duplicate
+)
+
+st.divider()
+
+# =====================================================
+# DEVELOPER REPLY
+# =====================================================
+
+if "developer_reply" in df.columns:
+
+    st.subheader("💬 Developer Reply")
+
+    st.metric(
+        "Total Reply",
+        reply
+    )
+
+st.divider()
+
+# =====================================================
+# TOP HELPFUL REVIEW
+# =====================================================
+
+if "likes" in df.columns:
+
+    st.subheader("👍 Top Helpful Reviews")
+
+    top = (
+
+        df
+
+        .sort_values(
+
+            "likes",
+
+            ascending=False
+
+        )
+
+        .head(10)
+
+    )
+
+    st.dataframe(
+
+        top[
+            [
+                "rating",
+                "likes",
+                "review"
+            ]
+        ],
+
+        width="stretch",
+
+        hide_index=True
+
+    )
+
+st.divider()
 
 # =====================================================
 # WORD CLOUD
 # =====================================================
 
-if text_column:
+if "review" in df.columns:
 
     st.subheader("☁ Word Cloud")
 
     text = " ".join(
 
-        df[text_column]
+        df["review"]
 
         .fillna("")
 
@@ -261,9 +327,9 @@ if text_column:
 
     wc = WordCloud(
 
-        width=1000,
+        width=1200,
 
-        height=500,
+        height=600,
 
         background_color="white"
 
