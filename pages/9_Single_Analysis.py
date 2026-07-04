@@ -554,6 +554,10 @@ st.subheader("❤️ Customer Retention Strategy")
 # RETENTION RULE
 # =====================================================
 
+# =====================================================
+# RETENTION RULE
+# =====================================================
+
 if segment == "😠 Nasabah Frustasi":
 
     priority = "Very High"
