@@ -1,116 +1,56 @@
-"""
-=========================================================
-CUSTOMER RETENTION MODULE
-=========================================================
-Customer Segment
-        ↓
-Priority
-        ↓
-Recommendation
-        ↓
-Business Insight
-=========================================================
-"""
+# =====================================================
+# SEGMENT STATISTICS
+# =====================================================
 
-import pandas as pd
-
-from config import RETENTION
-
-# ==========================================================
-# GET PRIORITY
-# ==========================================================
-
-def get_priority(segment):
-
-    if segment not in RETENTION:
-        return "Unknown"
-
-    return RETENTION[segment]["Priority"]
-
-
-# ==========================================================
-# GET RECOMMENDATION
-# ==========================================================
-
-def get_recommendation(segment):
-
-    if segment not in RETENTION:
-        return "-"
-
-    return RETENTION[segment]["Recommendation"]
-
-
-# ==========================================================
-# GET BUSINESS INSIGHT
-# ==========================================================
-
-def get_business_insight(segment):
-
-    insight = {
-
-        "Satisfied Customer":
-            "Pelanggan memiliki tingkat kepuasan tinggi dan berpotensi menjadi pelanggan loyal.",
-
-        "Passive Customer":
-            "Pelanggan belum menunjukkan loyalitas yang kuat sehingga perlu ditingkatkan engagement-nya.",
-
-        "At-Risk Customer":
-            "Pelanggan menunjukkan indikasi ketidakpuasan dan berpotensi berhenti menggunakan aplikasi."
-
-    }
-
-    return insight.get(segment, "-")
-
-
-# ==========================================================
-# SINGLE RETENTION
-# ==========================================================
-
-def retention_result(segment):
+def segment_statistics(df):
 
     return {
 
-        "Customer Segment": segment,
+        "Total Customer":len(df),
 
-        "Priority": get_priority(segment),
+        "Total Segment":
 
-        "Recommendation": get_recommendation(segment),
+        df["Customer Segment"].nunique(),
 
-        "Business Insight": get_business_insight(segment)
+        "Dominant Segment":
+
+        df["Customer Segment"].mode()[0]
 
     }
+        # =====================================================
+# RETENTION DATAFRAME
+# =====================================================
 
-
-# ==========================================================
-# DATAFRAME RETENTION
-# ==========================================================
-
-def retention_dataframe(df):
+def customer_retention(df):
 
     data = df.copy()
 
-    data["Priority"] = data["Customer Segment"].apply(
-        get_priority
+    data["Priority"] = data["Customer Segment"].map(
+
+        lambda x: RETENTION_STRATEGY[x]["Priority"]
+
     )
 
-    data["Recommendation"] = data["Customer Segment"].apply(
-        get_recommendation
+    data["Recommendation"] = data["Customer Segment"].map(
+
+        lambda x: RETENTION_STRATEGY[x]["Recommendation"]
+
     )
 
-    data["Business Insight"] = data["Customer Segment"].apply(
-        get_business_insight
+    data["Business Insight"] = data["Customer Segment"].map(
+
+        lambda x: RETENTION_STRATEGY[x]["Business Insight"]
+
     )
 
     return data
-
-
-# ==========================================================
+# =====================================================
 # PRIORITY SUMMARY
-# ==========================================================
+# =====================================================
 
 def priority_summary(df):
 
-    return (
+    summary = (
 
         df["Priority"]
 
@@ -118,28 +58,36 @@ def priority_summary(df):
 
         .reset_index()
 
-        .rename(
-
-            columns={
-
-                "index":"Priority",
-
-                "Priority":"Total"
-
-            }
-
-        )
-
     )
 
+    summary.columns=[
 
-# ==========================================================
+        "Priority",
+
+        "Total"
+
+    ]
+
+    summary["Percentage"]=(
+
+        summary["Total"]
+
+        /
+
+        summary["Total"].sum()
+
+        *100
+
+    ).round(2)
+
+    return summary
+# =====================================================
 # SEGMENT SUMMARY
-# ==========================================================
+# =====================================================
 
 def retention_summary(df):
 
-    summary = (
+    summary=(
 
         df
 
@@ -151,7 +99,7 @@ def retention_summary(df):
 
         .agg(
 
-            Total=("Customer Segment","count"),
+            Customer=("Customer Segment","count"),
 
             Avg_Confidence=("confidence","mean")
 
@@ -162,82 +110,57 @@ def retention_summary(df):
     )
 
     return summary
+# =====================================================
+# KPI
+# =====================================================
 
+def retention_kpi(df):
 
-# ==========================================================
-# HIGH PRIORITY
-# ==========================================================
-
-def high_priority(df):
-
-    return df[
-
-        df["Priority"]=="High"
-
-    ]
-
-
-# ==========================================================
-# MEDIUM PRIORITY
-# ==========================================================
-
-def medium_priority(df):
-
-    return df[
-
-        df["Priority"]=="Medium"
-
-    ]
-
-
-# ==========================================================
-# LOW PRIORITY
-# ==========================================================
-
-def low_priority(df):
-
-    return df[
-
-        df["Priority"]=="Low"
-
-    ]
-
-
-# ==========================================================
-# CUSTOMER COUNT
-# ==========================================================
-
-def customer_count(df):
-
-    return {
+    return{
 
         "Total Customer":len(df),
 
-        "High Priority":len(
+        "High Priority":
 
-            high_priority(df)
+        len(
+
+            df[
+
+                df["Priority"]=="High"
+
+            ]
 
         ),
 
-        "Medium Priority":len(
+        "Medium Priority":
 
-            medium_priority(df)
+        len(
+
+            df[
+
+                df["Priority"]=="Medium"
+
+            ]
 
         ),
 
-        "Low Priority":len(
+        "Low Priority":
 
-            low_priority(df)
+        len(
+
+            df[
+
+                df["Priority"]=="Low"
+
+            ]
 
         )
 
     }
+# =====================================================
+# BUSINESS RECOMMENDATION
+# =====================================================
 
+def recommendation(segment):
 
-# ==========================================================
-# EXPORT
-# ==========================================================
-
-def export_retention(df):
-
-    return retention_dataframe(df)
+    return RETENTION_STRATEGY.get(segment,{})
