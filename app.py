@@ -7,7 +7,13 @@ Main App
 
 import streamlit as st
 from PIL import Image
+from pathlib import Path
+
 from config import *
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 
 st.set_page_config(
     page_title=APP_TITLE,
@@ -16,19 +22,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-import streamlit as st
-from pathlib import Path
-from config import *
-
-st.set_page_config(
-    page_title=APP_TITLE,
-    page_icon=APP_ICON,
-    layout="wide"
-)
-
-# ==========================================
+# =====================================================
 # LOAD CSS
-# ==========================================
+# =====================================================
 
 if CSS_FILE.exists():
 
@@ -42,11 +38,29 @@ if CSS_FILE.exists():
 else:
 
     st.warning(f"CSS tidak ditemukan: {CSS_FILE}")
-# ============================================
-# SIDEBAR
-# ============================================
 
-st.sidebar.image(LOGO, width=180)
+# =====================================================
+# SIDEBAR
+# =====================================================
+
+if LOGO.exists():
+
+    try:
+
+        logo = Image.open(LOGO)
+
+        st.sidebar.image(
+            logo,
+            width=180
+        )
+
+    except Exception as e:
+
+        st.sidebar.warning(f"Logo tidak dapat dibuka: {e}")
+
+else:
+
+    st.sidebar.warning("Logo tidak ditemukan.")
 
 st.sidebar.title(APP_TITLE)
 
@@ -62,9 +76,9 @@ st.sidebar.success(
 """
 )
 
-# ============================================
+# =====================================================
 # HOME
-# ============================================
+# =====================================================
 
 st.title("📊 Livin Emotion Analysis")
 
@@ -72,22 +86,23 @@ st.markdown("---")
 
 st.markdown(
 """
-Aplikasi ini digunakan untuk menganalisis emosi
-ulasan Google Play menggunakan **Fine-Tuned IndoBERT**.
+Selamat datang di **Livin Emotion Analysis Dashboard**.
 
-Pipeline:
+Aplikasi ini digunakan untuk menganalisis emosi ulasan Google Play menggunakan
+model **Fine-Tuned IndoBERT** sebagai dasar penyusunan **Customer Segmentation**
+dan **Customer Retention Recommendation**.
 
-1. Upload Dataset
-2. Data Understanding
-3. Preprocessing
-4. Emotion Prediction
-5. Emotion Probability
-6. Customer Segmentation
-7. Customer Retention
-8. Dashboard
+### Pipeline Analisis
+
+1. 📂 Upload Dataset
+2. 📊 Data Understanding
+3. 🧹 Preprocessing
+4. 🤖 Emotion Prediction
+5. 📈 Emotion Probability
+6. 👥 Customer Segmentation
+7. 💡 Customer Retention
+8. 📊 Dashboard Analytics
 """
 )
 
-st.info(
-"Silakan pilih menu pada sidebar."
-)
+st.info("Silakan pilih menu pada sidebar.")
