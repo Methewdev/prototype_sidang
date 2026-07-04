@@ -458,50 +458,70 @@ confidence = prediction["confidence"] * 100
 # SEGMENTATION RULE
 # =====================================================
 
-if emotion == "Frustrasi":
+# =====================================================
+# RETENTION RULE
+# =====================================================
 
-    segment = "😠 Nasabah Frustasi"
+if segment == "😠 Nasabah Frustasi":
 
-    risk = "Very High"
+    priority = "Very High"
 
-    description = """
-Pelanggan mengalami frustrasi tinggi terhadap aplikasi
-dan memerlukan penanganan segera.
-"""
+    objective = "Mengurangi risiko churn dan menyelesaikan keluhan pelanggan."
 
-elif emotion == "Sedih":
+    actions = [
+        "Prioritaskan penyelesaian masalah.",
+        "Lakukan eskalasi ke tim teknis.",
+        "Hubungi pelanggan secara proaktif.",
+        "Berikan kompensasi bila diperlukan.",
+        "Lakukan monitoring hingga pelanggan kembali puas."
+    ]
 
-    segment = "😟 Nasabah Tidak Puas"
+elif segment == "😟 Nasabah Tidak Puas":
 
-    risk = "High"
+    priority = "High"
 
-    description = """
-Pelanggan merasa kecewa terhadap layanan aplikasi
-dan berpotensi menurunkan loyalitas.
-"""
+    objective = "Meningkatkan kepuasan pelanggan."
 
-elif emotion == "Netral":
+    actions = [
+        "Tindak lanjuti keluhan pelanggan.",
+        "Identifikasi penyebab utama masalah.",
+        "Lakukan follow-up setelah perbaikan.",
+        "Pastikan layanan kembali normal."
+    ]
 
-    segment = "😐 Nasabah Passive"
+elif segment == "😐 Nasabah Passive":
 
-    risk = "Medium"
+    priority = "Medium"
 
-    description = """
-Pelanggan belum menunjukkan emosi dominan.
-Perlu dilakukan engagement lebih lanjut.
-"""
+    objective = "Meningkatkan engagement pelanggan."
+
+    actions = [
+        "Edukasi penggunaan fitur.",
+        "Berikan promo yang relevan.",
+        "Dorong penggunaan fitur baru."
+    ]
+
+elif segment == "😊 Nasabah Puas":
+
+    priority = "Low"
+
+    objective = "Mempertahankan loyalitas pelanggan."
+
+    actions = [
+        "Pertahankan kualitas layanan.",
+        "Berikan reward dan cashback.",
+        "Dorong pelanggan memberikan ulasan positif."
+    ]
 
 else:
 
-    segment = "😊 Nasabah Puas"
+    priority = "-"
 
-    risk = "Low"
+    objective = "-"
 
-    description = """
-Pelanggan merasa puas terhadap aplikasi
-dan berpotensi menjadi pengguna loyal.
-"""
-
+    actions = [
+        "Belum ada rekomendasi."
+    ]
 # =====================================================
 # DISPLAY
 # =====================================================
