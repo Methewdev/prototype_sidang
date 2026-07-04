@@ -1,161 +1,230 @@
 """
 =========================================================
-UPLOAD DATASET
+DATA UNDERSTANDING
 =========================================================
 """
 
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
 from modules.utils import (
-    read_dataset,
-    save_session,
+    require_session,
     dataset_info,
     dataframe_info,
-    download_csv
+    detect_text_column,
+    detect_rating_column,
+    detect_date_column
 )
 
 st.set_page_config(
-    page_title="Upload Dataset",
-    page_icon="📂",
+    page_title="Data Understanding",
+    page_icon="📊",
     layout="wide"
 )
 
-st.title("📂 Upload Dataset")
+st.title("📊 Data Understanding")
 
 st.markdown("---")
 
-st.info(
-"""
-Silakan upload dataset hasil scraping Google Play.
+# =====================================================
+# LOAD DATASET
+# =====================================================
 
-Format yang didukung:
-
-• CSV
-
-• Excel (.xlsx)
-"""
+df = require_session(
+    "raw_df",
+    "Silakan upload dataset terlebih dahulu."
 )
 
-uploaded_file = st.file_uploader(
+# =====================================================
+# DATASET INFO
+# =====================================================
 
-    "Upload Dataset",
+info = dataset_info(df)
 
-    type=["csv","xlsx"]
+col1, col2, col3, col4 = st.columns(4)
 
+col1.metric("Jumlah Review", info["rows"])
+col2.metric("Jumlah Kolom", info["columns"])
+col3.metric("Missing Value", info["missing"])
+col4.metric("Duplicate Data", info["duplicate"])
+
+st.markdown("---")
+
+# =====================================================
+# PREVIEW DATASET
+# =====================================================
+
+st.subheader("📄 Preview Dataset")
+
+st.dataframe(
+    df,
+    use_container_width=True,
+    height=350
 )
 
-if uploaded_file:
+st.markdown("---")
 
-    with st.spinner("Membaca dataset..."):
+# =====================================================
+# INFORMASI DATASET
+# =====================================================
 
-        try:
+st.subheader("📋 Informasi Dataset")
 
-            df = read_dataset(uploaded_file)
+st.dataframe(
+    dataframe_info(df),
+    use_container_width=True
+)
 
-            save_session(
+st.markdown("---")
 
-                "raw_df",
+# =====================================================
+# DISTRIBUSI RATING
+# =====================================================
 
-                df
+rating_col = detect_rating_column(df)
 
-            )
+if rating_col:
 
-            st.success(
+    st.subheader("⭐ Distribusi Rating")
 
-                "Dataset berhasil diupload."
-
-            )
-
-        except Exception as e:
-
-            st.error(e)
-
-            st.stop()
-
-    # =====================================
-    # KPI
-    # =====================================
-
-    info = dataset_info(df)
-
-    c1,c2,c3,c4 = st.columns(4)
-
-    c1.metric(
-
-        "Jumlah Review",
-
-        info["rows"]
-
+    rating = (
+        df[rating_col]
+        .value_counts()
+        .sort_index()
+        .reset_index()
     )
 
-    c2.metric(
+    rating.columns = ["Rating","Jumlah"]
 
-        "Jumlah Kolom",
-
-        info["columns"]
-
+    fig = px.bar(
+        rating,
+        x="Rating",
+        y="Jumlah",
+        text_auto=True
     )
 
-    c3.metric(
-
-        "Missing",
-
-        info["missing"]
-
-    )
-
-    c4.metric(
-
-        "Duplicate",
-
-        info["duplicate"]
-
-    )
-
-    st.markdown("---")
-
-    st.subheader("Preview Dataset")
-
-    st.dataframe(
-
-        df,
-
-        use_container_width=True,
-
-        height=450
-
-    )
-
-    st.markdown("---")
-
-    st.subheader("Dataset Information")
-
-    st.dataframe(
-
-        dataframe_info(df),
-
+    st.plotly_chart(
+        fig,
         use_container_width=True
-
     )
 
-    st.markdown("---")
+st.markdown("---")
 
-    st.download_button(
+# =====================================================
+# PANJANG ULASAN
+# =====================================================
 
-        "⬇ Download Dataset",
+text_col = detect_text_column(df)
 
-        download_csv(df),
+if text_col:
 
-        "uploaded_dataset.csv",
+    st.subheader("📝 Distribusi Panjang Ulasan")
 
-        "text/csv"
+    temp = df.copy()
 
+    temp["Panjang Ulasan"] = (
+        temp[text_col]
+        .astype(str)
+        .str.split()
+        .str.len()
+    )
+
+    fig = px.histogram(
+        temp,
+        x="Panjang Ulasan",
+        nbins=30
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+st.markdown("---")
+
+# =====================================================
+# REVIEW PER TANGGAL
+# =====================================================
+
+date_col = detect_date_column(df)
+
+if date_col:
+
+    st.subheader("📅 Jumlah Review per Tanggal")
+
+    temp = df.copy()
+
+    temp[date_col] = pd.to_datetime(
+        temp[date_col],
+        errors="coerce"
+    )
+
+    review_date = (
+        temp.groupby(date_col)
+        .size()
+        .reset_index(name="Jumlah Review")
+    )
+
+    fig = px.line(
+        review_date,
+        x=date_col,
+        y="Jumlah Review",
+        markers=True
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+st.markdown("---")
+
+# =====================================================
+# MISSING VALUE
+# =====================================================
+
+st.subheader("❗ Missing Value")
+
+missing = (
+    df.isnull()
+      .sum()
+      .reset_index()
+)
+
+missing.columns = [
+    "Kolom",
+    "Missing"
+]
+
+st.dataframe(
+    missing,
+    use_container_width=True
+)
+
+st.markdown("---")
+
+# =====================================================
+# DUPLICATE
+# =====================================================
+
+st.subheader("📌 Duplicate Data")
+
+duplicate = df.duplicated().sum()
+
+st.metric(
+    "Jumlah Duplicate",
+    duplicate
+)
+
+if duplicate > 0:
+
+    st.warning(
+        "Dataset masih memiliki data duplikat."
     )
 
 else:
 
-    st.warning(
-
-        "Silakan upload dataset terlebih dahulu."
-
+    st.success(
+        "Tidak ditemukan data duplikat."
     )
