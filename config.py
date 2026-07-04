@@ -28,3 +28,10 @@ EMOTION_LABELS = [
     "Sedih",
     "Senang"
 ]
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+
+ASSET_DIR = ROOT / "assets"
+
+SLANG_FILE = ASSET_DIR / "new_kamus_alay.csv"
