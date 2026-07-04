@@ -133,11 +133,6 @@ if not st.session_state.raw_data.empty:
         
     )
 
-    c5.metric(
-        "App Version",
-        info["Total Version"]
-    )
-
     st.divider()
 
     st.subheader("📄 Preview Review")
