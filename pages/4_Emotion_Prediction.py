@@ -133,25 +133,18 @@ st.markdown("---")
 # RESULT
 # =====================================================
 
-prediction_display = prediction_df.copy()
-
-prediction_display["confidence"] = (
-    prediction_display["confidence"] * 100
-).round(2).astype(str) + " %"
-
 display_columns = [
     col
     for col in [
-        "prediction_id",
         "content",
-        "final_text",
         "emotion",
         "confidence"
     ]
-    if col in prediction_display.columns
+    if col in prediction_df.columns
 ]
 
 st.subheader("Prediction Result")
+
 st.dataframe(
     prediction_df[
         display_columns
