@@ -24,6 +24,11 @@ tokenizer, model, device = load_model()
 
 def predict_text(text):
 
+    if text is None:
+        text = ""
+
+    text = str(text)
+
     encoding = tokenizer(
         text,
         return_tensors="pt",
@@ -52,8 +57,14 @@ def predict_text(text):
 
     confidence = float(probability[prediction])
 
-    return emotion, confidence, probability
-    # =====================================================
+    return {
+        "emotion": emotion,
+        "confidence": confidence,
+        "probability": probability
+    }
+
+
+# =====================================================
 # BATCH PREDICTION
 # =====================================================
 
@@ -63,38 +74,36 @@ def predict_dataframe(
     batch_size=32
 ):
 
+    if text_column not in df.columns:
+        raise ValueError(
+            f"Kolom '{text_column}' tidak ditemukan."
+        )
+
     data = df.copy()
 
-    texts = data[text_column].fillna("").tolist()
+    texts = data[text_column].fillna("").astype(str).tolist()
 
     emotion_result = []
     confidence_result = []
     probability_result = []
+
+    model.eval()
 
     for start in range(0, len(texts), batch_size):
 
         batch = texts[start:start + batch_size]
 
         encoding = tokenizer(
-
             batch,
-
             return_tensors="pt",
-
             truncation=True,
-
             padding=True,
-
             max_length=MAX_LENGTH
-
         )
 
         encoding = {
-
             k: v.to(device)
-
             for k, v in encoding.items()
-
         }
 
         with torch.no_grad():
@@ -102,19 +111,13 @@ def predict_dataframe(
             output = model(**encoding)
 
         probability = torch.softmax(
-
             output.logits,
-
             dim=1
-
         ).cpu().numpy()
 
         prediction = np.argmax(
-
             probability,
-
             axis=1
-
         )
 
         for pred, prob in zip(prediction, probability):
@@ -132,34 +135,29 @@ def predict_dataframe(
     probability_result = np.array(probability_result)
 
     data["emotion"] = emotion_result
-
     data["confidence"] = confidence_result
 
     for i, label in enumerate(EMOTION_LABELS):
-
         data[label] = probability_result[:, i]
 
     return data
-    # =====================================================
+
+
+# =====================================================
 # SUMMARY
 # =====================================================
 
 def prediction_summary(df):
 
-    summary = {
+    return {
 
         "Total Review": len(df),
 
         "Dominant Emotion": df["emotion"].mode()[0],
 
         "Average Confidence": round(
-
             df["confidence"].mean() * 100,
-
             2
-
         )
 
     }
-
-    return summary
