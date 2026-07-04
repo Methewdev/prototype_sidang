@@ -50,12 +50,11 @@ SEGMENT_MAPPING = {
     },
 
     "Frustrasi": {
-        "Customer Segment": "😠 Nasabah Frustrasi",
+        "Customer Segment": "😠 Nasabah Frustasi",
         "Risk Level": "Very High"
     }
 
 }
-
 
 # =====================================================
 # CUSTOMER SEGMENTATION
