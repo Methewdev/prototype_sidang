@@ -21,45 +21,14 @@ from config import (
 tokenizer, model, device = load_model()
 
 # =====================================================
-# PREDICT SINGLE TEXT
+# PREDICT SINGLE REVIEW
 # =====================================================
 
-def predict_text(text):
-
-    if text is None:
-        text = ""
-
-    text = str(text).strip()
-
-    encoding = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        padding="max_length",
-        max_length=MAX_LENGTH
-    )
-
-    encoding = {
-        k: v.to(device)
-        for k, v in encoding.items()
-    }
-
-    with torch.no_grad():
-        outputs = model(**encoding)
-
-    probabilities = torch.softmax(
-        outputs.logits,
-        dim=1
-    ).cpu().numpy()[0]
-
-    prediction = np.argmax(probabilities)
-
-    return {
-        "emotion": EMOTION_LABELS[prediction],
-        "confidence": float(probabilities[prediction]),
-        "probability": probabilities
-    }
-
+def predict_single_review(text):
+    """
+    Wrapper untuk prediksi satu review.
+    """
+    return predict_text(text)
 
 # =====================================================
 # PREDICT BATCH
@@ -202,6 +171,7 @@ def prediction_summary(df):
 
 __all__ = [
     "predict_text",
+    "predict_single_review",
     "predict_batch",
     "predict_dataframe",
     "prediction_summary"
