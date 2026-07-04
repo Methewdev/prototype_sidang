@@ -56,18 +56,24 @@ if uploaded_file is not None:
 
             df = read_dataset(uploaded_file)
 
-            save_session(
-                "raw_df",
-                df
-            )
+            save_session("raw_df", df)
 
-        st.success("✅ Dataset berhasil diupload.")
+        st.success("Dataset berhasil diupload.")
 
     except Exception as e:
 
-        st.error(f"Gagal membaca dataset.\n\n{e}")
+        st.error(e)
 
         st.stop()
+
+    # Metric
+    info = dataset_info(df)
+
+    ...
+
+else:
+
+    st.warning("Silakan upload dataset.")
 
     # =====================================================
     # METRIC
