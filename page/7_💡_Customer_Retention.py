@@ -4,7 +4,14 @@ CUSTOMER RETENTION
 =========================================================
 """
 
-import streamlit as st
+from modules.retention import (
+    customer_retention,
+    retention_summary,
+    retention_statistics,
+    strategy_table,
+    priority_distribution
+
+)
 
 from modules.utils import (
     require_session,
