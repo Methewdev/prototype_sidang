@@ -362,3 +362,83 @@ def average_length(df):
         2
 
     )
+# =========================================================
+# WORD STATISTICS
+# =========================================================
+
+from collections import Counter
+
+def top_words(df, n=20):
+
+    words = []
+
+    for sentence in df["final_text"].fillna(""):
+
+        words.extend(sentence.split())
+
+    counter = Counter(words)
+
+    return pd.DataFrame(
+
+        counter.most_common(n),
+
+        columns=[
+
+            "Word",
+
+            "Frequency"
+
+        ]
+
+    )# =========================================================
+# REVIEW LENGTH
+# =========================================================
+
+def review_length(df):
+
+    result = df.copy()
+
+    result["review_length"] = (
+
+        result["final_text"]
+
+        .fillna("")
+
+        .apply(
+
+            lambda x: len(x.split())
+
+        )
+
+    )
+
+    return result
+__all__ = [
+
+    "cleaning",
+
+    "case_folding",
+
+    "normalization",
+
+    "remove_stopword",
+
+    "stemming",
+
+    "tokenization",
+
+    "preprocess_text",
+
+    "preprocess_dataframe",
+
+    "preprocessing_statistics",
+
+    "average_length",
+
+    "empty_review",
+
+    "top_words",
+
+    "review_length"
+
+]
