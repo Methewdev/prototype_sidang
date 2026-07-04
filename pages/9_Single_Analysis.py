@@ -5,6 +5,8 @@ SINGLE REVIEW ANALYSIS
 """
 
 import streamlit as st
+import streamlit as st
+import pandas as pd
 
 from modules.preprocessing import (
     preprocess_single_review
