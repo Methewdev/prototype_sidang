@@ -61,6 +61,23 @@ STOPWORDS = set(stop_factory.get_stop_words())
 stem_factory = StemmerFactory()
 stemmer = stem_factory.create_stemmer()
 
+# =========================================================
+# VALIDATE TEXT
+# =========================================================
+
+def validate_text(text):
+    """
+    Validasi input text.
+    Mengembalikan string kosong jika None/NaN.
+    """
+
+    if text is None:
+        return ""
+
+    if pd.isna(text):
+        return ""
+
+    return str(text).strip()
 
 # =========================================================
 # CLEANING
@@ -68,10 +85,10 @@ stemmer = stem_factory.create_stemmer()
 
 def cleaning(text):
 
-    if pd.isna(text):
-        return ""
+    text = validate_text(text)
 
-    text = str(text)
+    if text == "":
+        return ""
 
     text = re.sub(r"http\S+|www\S+", " ", text)
     text = re.sub(r"\S+@\S+", " ", text)
@@ -88,7 +105,6 @@ def cleaning(text):
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
-
 
 # =========================================================
 # CASE FOLDING
@@ -163,8 +179,17 @@ def tokenization(text):
 # =========================================================
 
 def preprocess_text(text):
+    """
+    Preprocess satu review.
+    Digunakan oleh:
+    - Batch Prediction
+    - Single Prediction
+    - Dashboard
+    """
 
-    clean = cleaning(text)
+    original = validate_text(text)
+
+    clean = cleaning(original)
     lower = case_folding(clean)
     normal = normalization(lower)
     stop = remove_stopword(normal)
@@ -172,40 +197,82 @@ def preprocess_text(text):
     token = tokenization(stem)
 
     return {
+
+        "original_text": original,
+
         "cleaning": clean,
+
         "case_folding": lower,
+
         "normalization": normal,
+
         "stopword": stop,
+
         "stemming": stem,
+
         "token": token,
+
         "final_text": " ".join(token)
+
     }
-
-
 # =========================================================
 # PREPROCESS DATAFRAME
 # =========================================================
 
-def preprocess_dataframe(df, text_column):
+def preprocess_dataframe(df, text_column="review"):
+    """
+    Preprocess seluruh dataframe.
+
+    Default menggunakan kolom review
+    hasil Live Scraper.
+    """
 
     df = df.copy()
 
-    # simpan review asli
-    if "content" not in df.columns:
-        df["content"] = df[text_column]
+    if text_column not in df.columns:
+        raise ValueError(
+            f"Kolom '{text_column}' tidak ditemukan."
+        )
 
-    results = df[text_column].fillna("").apply(preprocess_text)
+    results = (
+        df[text_column]
+        .fillna("")
+        .apply(preprocess_text)
+    )
 
-    df["cleaning"] = results.apply(lambda x: x["cleaning"])
-    df["case_folding"] = results.apply(lambda x: x["case_folding"])
-    df["normalization"] = results.apply(lambda x: x["normalization"])
-    df["stopword"] = results.apply(lambda x: x["stopword"])
-    df["stemming"] = results.apply(lambda x: x["stemming"])
-    df["token"] = results.apply(lambda x: x["token"])
-    df["final_text"] = results.apply(lambda x: x["final_text"])
+    df["original_text"] = results.apply(
+        lambda x: x["original_text"]
+    )
+
+    df["cleaning"] = results.apply(
+        lambda x: x["cleaning"]
+    )
+
+    df["case_folding"] = results.apply(
+        lambda x: x["case_folding"]
+    )
+
+    df["normalization"] = results.apply(
+        lambda x: x["normalization"]
+    )
+
+    df["stopword"] = results.apply(
+        lambda x: x["stopword"]
+    )
+
+    df["stemming"] = results.apply(
+        lambda x: x["stemming"]
+    )
+
+    df["token"] = results.apply(
+        lambda x: x["token"]
+    )
+
+    df["final_text"] = results.apply(
+        lambda x: x["final_text"]
+    )
 
     return df
-
 # =========================================================
 # PREPROCESSING STATISTICS
 # =========================================================
@@ -293,17 +360,46 @@ def review_length(df):
 
 
 __all__ = [
+
+    "validate_text",
+
     "cleaning",
+
     "case_folding",
+
     "normalization",
+
     "remove_stopword",
+
     "stemming",
+
     "tokenization",
+
     "preprocess_text",
+
+    "preprocess_single_review",
+
     "preprocess_dataframe",
+
     "preprocessing_statistics",
+
     "average_length",
+
     "empty_review",
+
     "top_words",
+
     "review_length",
+
 ]
+]
+# =========================================================
+# PREPROCESS SINGLE REVIEW
+# =========================================================
+
+def preprocess_single_review(text):
+    """
+    Alias untuk Single Analysis.
+    """
+
+    return preprocess_text(text)
