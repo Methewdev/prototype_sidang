@@ -550,13 +550,70 @@ st.subheader("❤️ Customer Retention Strategy")
 # =====================================================
 # RETENTION RULE
 # =====================================================
-emotion_icon = {
-    "Senang": "😊",
-    "Netral": "😐",
-    "Sedih": "😢",
-    "Frustrasi": "😠"
-}
-    
+# =====================================================
+# RETENTION RULE
+# =====================================================
+
+if segment == "😠 Nasabah Frustasi":
+
+    priority = "Very High"
+
+    objective = "Mengurangi risiko churn dan menyelesaikan keluhan pelanggan."
+
+    actions = [
+        "Prioritaskan penyelesaian masalah.",
+        "Lakukan eskalasi ke tim teknis.",
+        "Hubungi pelanggan secara proaktif.",
+        "Berikan kompensasi bila diperlukan.",
+        "Lakukan monitoring hingga pelanggan kembali puas."
+    ]
+
+elif segment == "😟 Nasabah Tidak Puas":
+
+    priority = "High"
+
+    objective = "Meningkatkan kepuasan pelanggan."
+
+    actions = [
+        "Tindak lanjuti keluhan pelanggan.",
+        "Identifikasi penyebab utama masalah.",
+        "Lakukan follow-up setelah perbaikan.",
+        "Pastikan layanan kembali normal."
+    ]
+
+elif segment == "😐 Nasabah Passive":
+
+    priority = "Medium"
+
+    objective = "Meningkatkan engagement pelanggan."
+
+    actions = [
+        "Edukasi penggunaan fitur.",
+        "Berikan promo yang relevan.",
+        "Dorong penggunaan fitur baru."
+    ]
+
+elif segment == "😊 Nasabah Puas":
+
+    priority = "Low"
+
+    objective = "Mempertahankan loyalitas pelanggan."
+
+    actions = [
+        "Pertahankan kualitas layanan.",
+        "Berikan reward dan cashback.",
+        "Dorong pelanggan memberikan ulasan positif."
+    ]
+
+else:
+
+    priority = "-"
+
+    objective = "-"
+
+    actions = [
+        "Belum ada rekomendasi."
+    ]
 
 # =====================================================
 # METRIC
