@@ -83,3 +83,148 @@ if "preprocess_df" not in st.session_state:
 preprocess_df = st.session_state["preprocess_df"]
 
 st.markdown("---")
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+
+    [
+
+        "🧹 Cleaning",
+
+        "🔡 Case Folding",
+
+        "🔄 Normalization",
+
+        "🚫 Stopword",
+
+        "🌱 Stemming",
+
+        "✂️ Tokenization"
+
+    ]
+
+)
+with tab1:
+
+    st.subheader("Cleaning")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                text_column,
+
+                "cleaning"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
+    with tab2:
+
+    st.subheader("Case Folding")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                "cleaning",
+
+                "case_folding"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
+    with tab3:
+
+    st.subheader("Normalization")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                "case_folding",
+
+                "normalization"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
+    with tab4:
+
+    st.subheader("Stopword Removal")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                "normalization",
+
+                "stopword"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
+   with tab5:
+
+    st.subheader("Stemming")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                "stopword",
+
+                "stemming"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
+       with tab5:
+
+    st.subheader("Stemming")
+
+    st.dataframe(
+
+        preprocess_df[
+
+            [
+
+                "stopword",
+
+                "stemming"
+
+            ]
+
+        ],
+
+        use_container_width=True
+
+    )
