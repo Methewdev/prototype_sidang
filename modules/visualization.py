@@ -439,3 +439,37 @@ def confidence_histogram(df):
     )
 
     return fig
+    # =====================================================
+# CUSTOMER SEGMENT BAR
+# =====================================================
+
+def segment_bar(df):
+
+    if "Customer Segment" not in df.columns:
+        return go.Figure()
+
+    segment = (
+        df["Customer Segment"]
+        .value_counts()
+        .reset_index()
+    )
+
+    segment.columns = [
+        "Customer Segment",
+        "Total"
+    ]
+
+    fig = px.bar(
+        segment,
+        x="Customer Segment",
+        y="Total",
+        text="Total",
+        color="Customer Segment"
+    )
+
+    fig.update_layout(
+        title="Customer Segment Distribution",
+        height=450
+    )
+
+    return fig
