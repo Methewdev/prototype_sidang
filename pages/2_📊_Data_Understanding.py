@@ -7,17 +7,20 @@ DATA UNDERSTANDING
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
+
+from modules.utils import (
+    require_session,
+    dataset_info,
+    dataframe_info,
+    detect_text_column,
+    detect_rating_column,
+    detect_date_column
+)
 
 st.set_page_config(
-
     page_title="Data Understanding",
-
     page_icon="📊",
-
     layout="wide"
-
 )
 
 st.title("📊 Data Understanding")
@@ -25,415 +28,203 @@ st.title("📊 Data Understanding")
 st.markdown("---")
 
 # =====================================================
-# CHECK DATASET
+# LOAD DATASET
 # =====================================================
 
-if "raw_df" not in st.session_state:
-
-    st.warning("Silakan upload dataset terlebih dahulu.")
-
-    st.stop()
-
-df = st.session_state["raw_df"]
+df = require_session(
+    "raw_df",
+    "Silakan upload dataset terlebih dahulu."
+)
 
 # =====================================================
-# DATASET OVERVIEW
+# DATASET INFO
 # =====================================================
 
-st.subheader("Dataset Overview")
+info = dataset_info(df)
 
-col1,col2,col3,col4,col5 = st.columns(5)
+col1, col2, col3, col4 = st.columns(4)
 
-with col1:
-
-    st.metric(
-
-        "Jumlah Review",
-
-        len(df)
-
-    )
-
-with col2:
-
-    st.metric(
-
-        "Jumlah Kolom",
-
-        len(df.columns)
-
-    )
-
-with col3:
-
-    st.metric(
-
-        "Missing Value",
-
-        df.isnull().sum().sum()
-
-    )
-
-with col4:
-
-    st.metric(
-
-        "Duplicate",
-
-        df.duplicated().sum()
-
-    )
-
-with col5:
-
-    if "content" in df.columns:
-
-        avg = round(
-
-            df["content"]
-
-            .astype(str)
-
-            .apply(len)
-
-            .mean(),
-
-            2
-
-        )
-
-    else:
-
-        avg = 0
-
-    st.metric(
-
-        "Avg Character",
-
-        avg
-
-    )
+col1.metric("Jumlah Review", info["rows"])
+col2.metric("Jumlah Kolom", info["columns"])
+col3.metric("Missing Value", info["missing"])
+col4.metric("Duplicate Data", info["duplicate"])
 
 st.markdown("---")
 
 # =====================================================
-# PREVIEW
+# PREVIEW DATASET
 # =====================================================
 
-st.subheader("Preview Dataset")
+st.subheader("📄 Preview Dataset")
 
 st.dataframe(
-
     df,
-
     use_container_width=True,
-
-    height=400
-
+    height=350
 )
-
-# =====================================================
-# COLUMN INFORMATION
-# =====================================================
 
 st.markdown("---")
 
-st.subheader("Column Information")
+# =====================================================
+# INFORMASI DATASET
+# =====================================================
 
-info = pd.DataFrame({
-
-    "Column":df.columns,
-
-    "Data Type":df.dtypes.astype(str),
-
-    "Missing":df.isnull().sum().values,
-
-    "Unique":df.nunique().values
-
-})
+st.subheader("📋 Informasi Dataset")
 
 st.dataframe(
-
-    info,
-
+    dataframe_info(df),
     use_container_width=True
-
 )
+
+st.markdown("---")
+
+# =====================================================
+# DISTRIBUSI RATING
+# =====================================================
+
+rating_col = detect_rating_column(df)
+
+if rating_col:
+
+    st.subheader("⭐ Distribusi Rating")
+
+    rating = (
+        df[rating_col]
+        .value_counts()
+        .sort_index()
+        .reset_index()
+    )
+
+    rating.columns = ["Rating","Jumlah"]
+
+    fig = px.bar(
+        rating,
+        x="Rating",
+        y="Jumlah",
+        text_auto=True
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+st.markdown("---")
+
+# =====================================================
+# PANJANG ULASAN
+# =====================================================
+
+text_col = detect_text_column(df)
+
+if text_col:
+
+    st.subheader("📝 Distribusi Panjang Ulasan")
+
+    temp = df.copy()
+
+    temp["Panjang Ulasan"] = (
+        temp[text_col]
+        .astype(str)
+        .str.split()
+        .str.len()
+    )
+
+    fig = px.histogram(
+        temp,
+        x="Panjang Ulasan",
+        nbins=30
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+st.markdown("---")
+
+# =====================================================
+# REVIEW PER TANGGAL
+# =====================================================
+
+date_col = detect_date_column(df)
+
+if date_col:
+
+    st.subheader("📅 Jumlah Review per Tanggal")
+
+    temp = df.copy()
+
+    temp[date_col] = pd.to_datetime(
+        temp[date_col],
+        errors="coerce"
+    )
+
+    review_date = (
+        temp.groupby(date_col)
+        .size()
+        .reset_index(name="Jumlah Review")
+    )
+
+    fig = px.line(
+        review_date,
+        x=date_col,
+        y="Jumlah Review",
+        markers=True
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+st.markdown("---")
 
 # =====================================================
 # MISSING VALUE
 # =====================================================
 
-st.markdown("---")
+st.subheader("❗ Missing Value")
 
-st.subheader("Missing Value Analysis")
-
-missing = pd.DataFrame(
-
-    df.isnull().sum(),
-
-    columns=["Missing"]
-
+missing = (
+    df.isnull()
+      .sum()
+      .reset_index()
 )
 
-missing = missing.reset_index()
-
-missing.columns=[
-
-    "Column",
-
+missing.columns = [
+    "Kolom",
     "Missing"
-
 ]
 
-fig = px.bar(
-
+st.dataframe(
     missing,
-
-    x="Column",
-
-    y="Missing",
-
-    text_auto=True
-
-)
-
-st.plotly_chart(
-
-    fig,
-
     use_container_width=True
-
 )
+
+st.markdown("---")
 
 # =====================================================
 # DUPLICATE
 # =====================================================
 
-st.markdown("---")
-
-st.subheader("Duplicate Data")
+st.subheader("📌 Duplicate Data")
 
 duplicate = df.duplicated().sum()
 
 st.metric(
-
-    "Duplicate Review",
-
+    "Jumlah Duplicate",
     duplicate
-
 )
 
-# =====================================================
-# DISTRIBUTION SCORE
-# =====================================================
+if duplicate > 0:
 
-if "score" in df.columns:
-
-    st.markdown("---")
-
-    st.subheader("Rating Distribution")
-
-    rating = (
-
-        df["score"]
-
-        .value_counts()
-
-        .sort_index()
-
-        .reset_index()
-
+    st.warning(
+        "Dataset masih memiliki data duplikat."
     )
 
-    rating.columns=[
+else:
 
-        "Rating",
-
-        "Total"
-
-    ]
-
-    fig = px.bar(
-
-        rating,
-
-        x="Rating",
-
-        y="Total",
-
-        text_auto=True
-
+    st.success(
+        "Tidak ditemukan data duplikat."
     )
-
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
-
-# =====================================================
-# REVIEW LENGTH
-# =====================================================
-
-if "content" in df.columns:
-
-    st.markdown("---")
-
-    st.subheader("Review Length")
-
-    length = df.copy()
-
-    length["Length"] = length["content"] \
-        .astype(str) \
-        .apply(lambda x: len(x.split()))
-
-    fig = px.histogram(
-
-        length,
-
-        x="Length",
-
-        nbins=30
-
-    )
-
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
-
-# =====================================================
-# WORD CLOUD
-# =====================================================
-
-if "content" in df.columns:
-
-    st.markdown("---")
-
-    st.subheader("WordCloud")
-
-    text = " ".join(
-
-        df["content"]
-
-        .astype(str)
-
-    )
-
-    wc = WordCloud(
-
-        width=1200,
-
-        height=500,
-
-        background_color="white"
-
-    ).generate(text)
-
-    fig,ax = plt.subplots(
-
-        figsize=(14,6)
-
-    )
-
-    ax.imshow(
-
-        wc,
-
-        interpolation="bilinear"
-
-    )
-
-    ax.axis("off")
-
-    st.pyplot(fig)
-
-# =====================================================
-# TOP WORD
-# =====================================================
-
-if "content" in df.columns:
-
-    st.markdown("---")
-
-    st.subheader("Top 20 Frequent Word")
-
-    words = " ".join(
-
-        df["content"]
-
-        .astype(str)
-
-    ).split()
-
-    top = (
-
-        pd.Series(words)
-
-        .value_counts()
-
-        .head(20)
-
-        .reset_index()
-
-    )
-
-    top.columns=[
-
-        "Word",
-
-        "Frequency"
-
-    ]
-
-    fig = px.bar(
-
-        top,
-
-        x="Word",
-
-        y="Frequency",
-
-        text_auto=True
-
-    )
-
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
-
-# =====================================================
-# DATASET DESCRIPTION
-# =====================================================
-
-st.markdown("---")
-
-st.subheader("Dataset Statistics")
-
-st.dataframe(
-
-    df.describe(
-
-        include="all"
-
-    ),
-
-    use_container_width=True
-
-)
-
-# =====================================================
-# SAVE SESSION
-# =====================================================
-
-st.session_state["understanding_df"] = df
