@@ -172,6 +172,177 @@ def duplicate_chart(df):
         title="Duplicate Distribution",
 
         height=450
+        
+    )
+
+    return fig
+    
+# =====================================================
+# EMOTION DISTRIBUTION
+# =====================================================
+
+def emotion_distribution_chart(df, emotion_column="emotion"):
+
+    if emotion_column not in df.columns:
+        return go.Figure()
+
+    emotion = (
+        df[emotion_column]
+        .value_counts()
+        .reset_index()
+    )
+
+    emotion.columns = ["Emotion", "Total"]
+
+    fig = px.bar(
+        emotion,
+        x="Emotion",
+        y="Total",
+        text="Total",
+        color="Emotion"
+    )
+
+    fig.update_layout(
+        title="Emotion Distribution",
+        height=450
+    )
+
+    return fig
+    # =====================================================
+# EMOTION PIE
+# =====================================================
+
+def emotion_pie_chart(df, emotion_column="emotion"):
+
+    if emotion_column not in df.columns:
+        return go.Figure()
+
+    emotion = (
+        df[emotion_column]
+        .value_counts()
+        .reset_index()
+    )
+
+    emotion.columns = ["Emotion", "Total"]
+
+    fig = px.pie(
+        emotion,
+        names="Emotion",
+        values="Total",
+        hole=0.45
+    )
+
+    fig.update_layout(
+        title="Emotion Distribution",
+        height=450
+    )
+
+    return fig
+    # =====================================================
+# PROBABILITY
+# =====================================================
+
+def probability_chart(probability):
+
+    if isinstance(probability, dict):
+
+        prob = pd.DataFrame({
+
+            "Emotion": probability.keys(),
+
+            "Probability": probability.values()
+
+        })
+
+    else:
+
+        prob = probability
+
+    fig = px.bar(
+
+        prob,
+
+        x="Emotion",
+
+        y="Probability",
+
+        color="Emotion",
+
+        text="Probability"
+
+    )
+
+    fig.update_layout(
+
+        title="Emotion Probability",
+
+        yaxis_range=[0,1],
+
+        height=400
+
+    )
+
+    return fig
+    # =====================================================
+# CONFIDENCE
+# =====================================================
+
+def confidence_gauge(score):
+
+    fig = go.Figure(
+
+        go.Indicator(
+
+            mode="gauge+number",
+
+            value=score*100,
+
+            title={"text":"Confidence"},
+
+            gauge={
+
+                "axis":{"range":[0,100]}
+
+            }
+
+        )
+
+    )
+
+    fig.update_layout(
+
+        height=350
+
+    )
+
+    return fig
+    # =====================================================
+# WORD FREQUENCY
+# =====================================================
+
+def top_word_chart(df):
+
+    if "Word" not in df.columns:
+
+        return go.Figure()
+
+    fig = px.bar(
+
+        df,
+
+        x="Frequency",
+
+        y="Word",
+
+        orientation="h"
+
+    )
+
+    fig.update_layout(
+
+        title="Top Words",
+
+        height=500
 
     )
 
