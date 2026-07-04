@@ -85,35 +85,6 @@ st.dataframe(
 
 st.markdown("---")
 
-# =====================================================
-# BAR
-# =====================================================
-
-st.subheader("Average Probability Chart")
-
-st.plotly_chart(
-    average_probability_chart(
-        probability_df
-    ),
-    use_container_width=True
-)
-
-st.markdown("---")
-
-# =====================================================
-# HEATMAP
-# =====================================================
-
-st.subheader("Probability Heatmap")
-
-st.plotly_chart(
-    probability_heatmap(
-        probability_df
-    ),
-    use_container_width=True
-)
-
-st.markdown("---")
 
 # =====================================================
 # TABLE
