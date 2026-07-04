@@ -5,11 +5,14 @@ UPLOAD DATASET
 """
 
 import streamlit as st
-import pandas as pd
 
-# ==========================================================
-# PAGE CONFIG
-# ==========================================================
+from modules.utils import (
+    read_dataset,
+    save_session,
+    dataset_info,
+    dataframe_info,
+    download_csv
+)
 
 st.set_page_config(
     page_title="Upload Dataset",
@@ -21,120 +24,92 @@ st.title("📂 Upload Dataset")
 
 st.markdown("---")
 
-st.write("""
-Silakan upload dataset hasil scraping Google Play
-dalam format CSV (.csv) atau Excel (.xlsx).
-""")
+st.info(
+"""
+Silakan upload dataset hasil scraping Google Play.
 
-# ==========================================================
-# INITIAL SESSION
-# ==========================================================
+Format yang didukung:
 
-if "raw_df" not in st.session_state:
-    st.session_state["raw_df"] = None
+• CSV
 
-# ==========================================================
-# READ DATASET
-# ==========================================================
+• Excel (.xlsx)
+"""
+)
 
-def read_dataset(uploaded_file):
+uploaded_file = st.file_uploader(
 
-    if uploaded_file.name.lower().endswith(".xlsx"):
-        return pd.read_excel(uploaded_file)
+    "Upload Dataset",
 
-    read_options = [
+    type=["csv","xlsx"]
 
-        {"sep": ",", "encoding": "utf-8"},
+)
 
-        {"sep": ";", "encoding": "utf-8"},
+if uploaded_file:
 
-        {"sep": ",", "encoding": "latin1"},
-
-        {"sep": ";", "encoding": "latin1"},
-
-        {"sep": None, "engine": "python"}
-
-    ]
-
-    for option in read_options:
-
-        uploaded_file.seek(0)
+    with st.spinner("Membaca dataset..."):
 
         try:
 
-            return pd.read_csv(uploaded_file, **option)
+            df = read_dataset(uploaded_file)
 
-        except Exception:
+            save_session(
 
-            continue
+                "raw_df",
 
-    raise ValueError(
-        "File CSV tidak dapat dibaca."
-    )
+                df
 
-# ==========================================================
-# FILE UPLOADER
-# ==========================================================
+            )
 
-uploaded_file = st.file_uploader(
-    "Upload Dataset",
-    type=["csv", "xlsx"]
-)
+            st.success(
 
-# ==========================================================
-# LOAD DATASET
-# ==========================================================
+                "Dataset berhasil diupload."
 
-if uploaded_file is not None:
+            )
 
-    try:
+        except Exception as e:
 
-        df = read_dataset(uploaded_file)
+            st.error(e)
 
-        # ===============================
-        # SAVE SESSION
-        # ===============================
+            st.stop()
 
-        st.session_state["raw_df"] = df
+    # =====================================
+    # KPI
+    # =====================================
 
-        st.success("✅ Dataset berhasil diupload.")
+    info = dataset_info(df)
 
-    except Exception as e:
+    c1,c2,c3,c4 = st.columns(4)
 
-        st.error(f"Gagal membaca dataset : {e}")
+    c1.metric(
 
-        st.stop()
-
-# ==========================================================
-# DISPLAY DATA
-# ==========================================================
-
-df = st.session_state.get("raw_df")
-
-if df is not None and isinstance(df, pd.DataFrame):
-
-    st.markdown("---")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric(
         "Jumlah Review",
-        len(df)
+
+        info["rows"]
+
     )
 
-    col2.metric(
+    c2.metric(
+
         "Jumlah Kolom",
-        len(df.columns)
+
+        info["columns"]
+
     )
 
-    col3.metric(
-        "Missing Value",
-        int(df.isnull().sum().sum())
+    c3.metric(
+
+        "Missing",
+
+        info["missing"]
+
     )
 
-    col4.metric(
+    c4.metric(
+
         "Duplicate",
-        int(df.duplicated().sum())
+
+        info["duplicate"]
+
     )
 
     st.markdown("---")
@@ -142,48 +117,45 @@ if df is not None and isinstance(df, pd.DataFrame):
     st.subheader("Preview Dataset")
 
     st.dataframe(
+
         df,
+
         use_container_width=True,
+
         height=450
+
     )
 
     st.markdown("---")
 
-    st.subheader("Informasi Dataset")
-
-    info = pd.DataFrame({
-
-        "Column": df.columns,
-
-        "Data Type": df.dtypes.astype(str),
-
-        "Missing": df.isnull().sum().values
-
-    })
+    st.subheader("Dataset Information")
 
     st.dataframe(
-        info,
+
+        dataframe_info(df),
+
         use_container_width=True
+
     )
 
     st.markdown("---")
-
-    csv = df.to_csv(
-        index=False
-    ).encode("utf-8-sig")
 
     st.download_button(
 
         "⬇ Download Dataset",
 
-        csv,
+        download_csv(df),
 
-        file_name="uploaded_dataset.csv",
+        "uploaded_dataset.csv",
 
-        mime="text/csv"
+        "text/csv"
 
     )
 
 else:
 
-    st.info("📂 Silakan upload dataset terlebih dahulu.")
+    st.warning(
+
+        "Silakan upload dataset terlebih dahulu."
+
+    )
