@@ -191,6 +191,10 @@ def preprocess_dataframe(df, text_column):
 
     df = df.copy()
 
+    # simpan review asli
+    if "content" not in df.columns:
+        df["content"] = df[text_column]
+
     results = df[text_column].fillna("").apply(preprocess_text)
 
     df["cleaning"] = results.apply(lambda x: x["cleaning"])
@@ -202,7 +206,6 @@ def preprocess_dataframe(df, text_column):
     df["final_text"] = results.apply(lambda x: x["final_text"])
 
     return df
-
 
 # =========================================================
 # PREPROCESSING STATISTICS
