@@ -87,6 +87,16 @@ if analyze:
     st.session_state.single_preprocess = preprocess
     st.session_state.single_prediction = prediction
     # =====================================================
+# LOAD RESULT
+# =====================================================
+
+if "single_preprocess" not in st.session_state:
+    st.info("Silakan masukkan review kemudian klik **Analyze Review**.")
+    st.stop()
+
+preprocess = st.session_state.single_preprocess
+prediction = st.session_state.single_prediction
+    # =====================================================
 # DATA UNDERSTANDING
 # =====================================================
 
