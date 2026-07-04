@@ -16,16 +16,32 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ============================================
+import streamlit as st
+from pathlib import Path
+from config import *
+
+st.set_page_config(
+    page_title=APP_TITLE,
+    page_icon=APP_ICON,
+    layout="wide"
+)
+
+# ==========================================
 # LOAD CSS
-# ============================================
+# ==========================================
 
-with open(CSS_FILE, encoding="utf-8") as f:
-    st.markdown(
-        f"<style>{f.read()}</style>",
-        unsafe_allow_html=True
-    )
+if CSS_FILE.exists():
 
+    with open(CSS_FILE, "r", encoding="utf-8") as f:
+
+        st.markdown(
+            f"<style>{f.read()}</style>",
+            unsafe_allow_html=True
+        )
+
+else:
+
+    st.warning(f"CSS tidak ditemukan: {CSS_FILE}")
 # ============================================
 # SIDEBAR
 # ============================================
