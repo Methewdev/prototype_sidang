@@ -35,22 +35,22 @@ def reset_pipeline():
 SEGMENT_MAPPING = {
 
     "Senang": {
-        "Customer Segment": "😊 Loyal Customer",
+        "Customer Segment": "😊 Nasabah Puas",
         "Risk Level": "Low"
     },
 
     "Netral": {
-        "Customer Segment": "😐 Passive Customer",
+        "Customer Segment": "😐 Nasabah Passive ",
         "Risk Level": "Medium"
     },
 
     "Sedih": {
-        "Customer Segment": "😟 Unsatisfied Customer",
+        "Customer Segment": "😟 Nasabah Berisiko",
         "Risk Level": "High"
     },
 
     "Frustrasi": {
-        "Customer Segment": "😠 At-Risk Customer",
+        "Customer Segment": "😠 Nasabah Frustrasi",
         "Risk Level": "Very High"
     }
 
