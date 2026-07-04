@@ -291,3 +291,74 @@ def preprocess_dataframe(df, text_column):
     )
 
     return df
+
+# =========================================================
+# PREPROCESSING STATISTICS
+# =========================================================
+
+def preprocessing_statistics(df):
+
+    stats = {
+
+        "Total Review": len(df),
+
+        "Cleaning": df["cleaning"].notna().sum(),
+
+        "Case Folding": df["case_folding"].notna().sum(),
+
+        "Normalization": df["normalization"].notna().sum(),
+
+        "Stopword": df["stopword"].notna().sum(),
+
+        "Stemming": df["stemming"].notna().sum(),
+
+        "Tokenization": df["token"].notna().sum()
+
+    }
+
+    return stats
+# =========================================================
+# EMPTY REVIEW
+# =========================================================
+
+def empty_review(df):
+
+    return int(
+
+        df["final_text"]
+
+        .fillna("")
+
+        .str.strip()
+
+        .eq("")
+
+        .sum()
+
+    )
+# =========================================================
+# AVERAGE LENGTH
+# =========================================================
+
+def average_length(df):
+
+    if len(df) == 0:
+        return 0
+
+    return round(
+
+        df["final_text"]
+
+        .fillna("")
+
+        .apply(
+
+            lambda x: len(x.split())
+
+        )
+
+        .mean(),
+
+        2
+
+    )
