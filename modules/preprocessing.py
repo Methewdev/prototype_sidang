@@ -7,7 +7,9 @@ Livin Emotion Analysis
 
 import re
 import string
+import pandas as pd
 
+from config import SLANG_FILE
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
@@ -23,26 +25,32 @@ stopword = StopWordRemoverFactory().create_stop_word_remover()
 # SLANG DICTIONARY
 # =====================================================
 
-SLANG = {
+def load_slang_dictionary():
 
-    "gk":"tidak",
-    "ga":"tidak",
-    "ngga":"tidak",
-    "nggak":"tidak",
-    "tdk":"tidak",
-    "aja":"saja",
-    "yg":"yang",
-    "dr":"dari",
-    "krn":"karena",
-    "udh":"sudah",
-    "blm":"belum",
-    "trs":"terus",
-    "tp":"tapi",
-    "sm":"sama",
-    "dgn":"dengan",
-    "bgt":"banget"
+    slang_df = pd.read_csv(
 
-}
+        SLANG_FILE,
+
+        encoding="utf-8"
+
+    )
+
+    slang_dict = dict(
+
+        zip(
+
+            slang_df["slang"],
+
+            slang_df["formal"]
+
+        )
+
+    )
+
+    return slang_dict
+
+
+SLANG_DICT = load_slang_dictionary()
 
 # =====================================================
 # CLEANING
