@@ -93,11 +93,6 @@ segmentation_df = st.session_state["segmentation_df"]
 
 stat = segment_statistics(
     segmentation_df
-)
-
-score = silhouette(
-    segmentation_df
-)
 
 c1, c2, c3, c4 = st.columns(4)
 
