@@ -14,8 +14,6 @@ import pandas as pd
 
 RETENTION_RULE = {
 
-  RETENTION_RULE = {
-
     "😊 Nasabah Puas": {
 
         "Priority": "Low",
