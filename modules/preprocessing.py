@@ -359,6 +359,23 @@ def review_length(df):
     return result
 
 
+# =========================================================
+# PREPROCESS SINGLE REVIEW
+# =========================================================
+
+def preprocess_single_review(text):
+    """
+    Preprocess satu review.
+    Digunakan untuk halaman Single Review Analysis.
+    """
+
+    return preprocess_text(text)
+
+
+# =========================================================
+# EXPORT
+# =========================================================
+
 __all__ = [
 
     "validate_text",
@@ -392,14 +409,3 @@ __all__ = [
     "review_length",
 
 ]
-]
-# =========================================================
-# PREPROCESS SINGLE REVIEW
-# =========================================================
-
-def preprocess_single_review(text):
-    """
-    Alias untuk Single Analysis.
-    """
-
-    return preprocess_text(text)
