@@ -191,6 +191,8 @@ def strategy_table(df):
 
             [
 
+                "content",
+
                 "Customer Segment",
 
                 "Priority",
