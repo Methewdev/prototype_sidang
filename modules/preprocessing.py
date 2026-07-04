@@ -336,3 +336,177 @@ def final_text(tokens):
         return ""
 
     return " ".join(tokens)
+    # =====================================================
+# PREPROCESS SINGLE TEXT
+# =====================================================
+
+def preprocess_text(text):
+
+    clean = cleaning(text)
+
+    lower = case_folding(clean)
+
+    cleaned = clean_text(lower)
+
+    normal = normalization(cleaned)
+
+    stop = stopword_removal(normal)
+
+    stem = stemming(stop)
+
+    token = tokenization(stem)
+
+    final = final_text(token)
+
+    return {
+
+        "cleaning": clean,
+
+        "case_folding": lower,
+
+        "clean_text": cleaned,
+
+        "normalization": normal,
+
+        "stopword": stop,
+
+        "stemming": stem,
+
+        "token": token,
+
+        "final_text": final
+
+    }
+    # =====================================================
+# PREPROCESS DATAFRAME
+# =====================================================
+
+def preprocess_dataframe(df, text_column):
+
+    data = df.copy()
+
+    result = data[text_column].apply(
+        preprocess_text
+    )
+
+    result = pd.DataFrame(
+        result.tolist()
+    )
+
+    data = pd.concat(
+
+        [
+
+            data,
+
+            result
+
+        ],
+
+        axis=1
+
+    )
+
+    return data
+    # =====================================================
+# PREVIEW
+# =====================================================
+
+def preview_preprocessing(df, n=10):
+
+    columns = [
+
+        "cleaning",
+
+        "case_folding",
+
+        "clean_text",
+
+        "normalization",
+
+        "stopword",
+
+        "stemming",
+
+        "token",
+
+        "final_text"
+
+    ]
+
+    return df[
+        columns
+    ].head(n)
+    # =====================================================
+# PREPROCESSING STATISTICS
+# =====================================================
+
+def preprocessing_statistics(df):
+
+    return {
+
+        "Total Review":
+
+            len(df),
+
+        "Cleaning":
+
+            df["cleaning"].notna().sum(),
+
+        "Case Folding":
+
+            df["case_folding"].notna().sum(),
+
+        "Clean Text":
+
+            df["clean_text"].notna().sum(),
+
+        "Normalization":
+
+            df["normalization"].notna().sum(),
+
+        "Stopword":
+
+            df["stopword"].notna().sum(),
+
+        "Stemming":
+
+            df["stemming"].notna().sum(),
+
+        "Tokenization":
+
+            df["token"].notna().sum()
+
+    }
+    # =====================================================
+# EMPTY REVIEW
+# =====================================================
+
+def empty_review(df):
+
+    return (
+
+        df["final_text"]
+
+        == ""
+
+    ).sum()
+    # =====================================================
+# AVERAGE LENGTH
+# =====================================================
+
+def average_length(df):
+
+    return round(
+
+        df["final_text"]
+
+        .str.split()
+
+        .apply(len)
+
+        .mean(),
+
+        2
+
+    )
