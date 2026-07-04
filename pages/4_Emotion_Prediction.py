@@ -133,23 +133,16 @@ st.markdown("---")
 # RESULT
 # =====================================================
 
-display_columns = [
-    col
-    for col in [
-        "content",
-        "emotion",
-        "confidence"
-    ]
-    if col in prediction_df.columns
-]
+prediction_display = prediction_df.copy()
+
+...
 
 st.subheader("Prediction Result")
 
 st.dataframe(
-    prediction_df[
-        display_columns
-    ],
+    prediction_display[display_columns],
     use_container_width=True,
+    hide_index=True,
     height=450
 )
 
@@ -158,54 +151,54 @@ st.markdown("---")
 # =====================================================
 # VISUALIZATION
 # =====================================================
+st.subheader("Prediction Result")
 
-left, right = st.columns(2)
-
-with left:
-
-    st.plotly_chart(
-        emotion_bar(
-            prediction_df
-        ),
-        use_container_width=True
-    )
-
-with right:
-
-    st.plotly_chart(
-        emotion_pie(
-            prediction_df
-        ),
-        use_container_width=True
-    )
-
-st.markdown("---")
-
-# =====================================================
-# CONFIDENCE
-# =====================================================
-
-st.subheader("Confidence Distribution")
-
-st.plotly_chart(
-    confidence_histogram(
-        prediction_df
-    ),
-    use_container_width=True
+st.dataframe(
+    prediction_display[display_columns],
+    use_container_width=True,
+    hide_index=True,
+    height=450
 )
 
 st.markdown("---")
 
 # =====================================================
-# DOWNLOAD
+# VIEW REVIEW
 # =====================================================
 
-st.download_button(
-    label="⬇ Download Prediction Result",
-    data=download_csv(
-        prediction_df
-    ),
-    file_name="prediction.csv",
-    mime="text/csv",
-    use_container_width=True
+st.subheader("👁 View Review")
+
+selected = st.selectbox(
+    "Pilih Review",
+    prediction_display["prediction_id"]
 )
+
+row = prediction_df[
+    prediction_df["prediction_id"] == selected
+].iloc[0]
+
+st.markdown("### 📝 Original Review")
+st.info(row["content"])
+
+st.markdown("### 🧹 Final Text")
+st.code(row["final_text"])
+
+c1, c2 = st.columns(2)
+
+with c1:
+    st.metric(
+        "Emotion",
+        row["emotion"]
+    )
+
+with c2:
+    st.metric(
+        "Confidence",
+        f"{row['confidence'] * 100:.2f}%"
+    )
+
+st.markdown("---")
+
+# =====================================================
+# VISUALIZATION
+# =====================================================
