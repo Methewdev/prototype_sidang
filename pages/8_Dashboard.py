@@ -173,10 +173,6 @@ st.markdown("---")
 # RETENTION STRATEGY
 # =====================================================
 
-# =====================================================
-# RETENTION STRATEGY
-# =====================================================
-
 if "Retention Strategy" in retention_df.columns:
 
     st.subheader("Retention Recommendation")
@@ -199,46 +195,6 @@ if "Retention Strategy" in retention_df.columns:
         use_container_width=True,
         hide_index=True
     )
-
-st.markdown("---")
-
-# =====================================================
-# FINAL DATASET
-# =====================================================
-
-st.subheader("Final Dataset")
-
-display_columns = [
-
-    col for col in [
-
-        "content",
-
-        "final_text",
-
-        "emotion",
-
-        "confidence",
-
-        "Customer Segment",
-
-        "Customer Type",
-
-        "Risk Level",
-
-        "Retention Strategy"
-
-    ]
-
-    if col in retention_df.columns
-
-]
-
-st.dataframe(
-    retention_df[display_columns],
-    use_container_width=True,
-    height=500
-)
 
 st.markdown("---")
 
