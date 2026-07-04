@@ -7,7 +7,6 @@ Probability Visualization
 """
 
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -20,19 +19,15 @@ from config import EMOTION_LABELS
 
 def probability_dataframe(text):
 
-    result = predict(text)
-
-    probability = result["probability"]
+    emotion, confidence, probability = predict_text(text)
 
     df = pd.DataFrame({
-
-        "Emotion":EMOTION_LABELS,
-
-        "Probability":probability
-
+        "Emotion": EMOTION_LABELS,
+        "Probability": probability
     })
 
     return df
+
 
 # ==========================================================
 # BAR CHART
@@ -43,32 +38,22 @@ def probability_bar_chart(text):
     df = probability_dataframe(text)
 
     fig = px.bar(
-
         df,
-
         x="Emotion",
-
         y="Probability",
-
         color="Emotion",
-
         text_auto=".2f"
-
     )
 
     fig.update_layout(
-
         title="Emotion Probability",
-
-        yaxis_title="Probability",
-
         xaxis_title="Emotion",
-
+        yaxis_title="Probability",
         height=450
-
     )
 
     return fig
+
 
 # ==========================================================
 # PIE CHART
@@ -79,64 +64,43 @@ def probability_pie_chart(text):
     df = probability_dataframe(text)
 
     fig = px.pie(
-
         df,
-
         values="Probability",
-
         names="Emotion",
-
         hole=0.4
-
     )
 
     fig.update_layout(
-
         title="Emotion Probability Distribution",
-
         height=450
-
     )
 
     return fig
 
+
 # ==========================================================
-# GAUGE CONFIDENCE
+# CONFIDENCE GAUGE
 # ==========================================================
 
 def confidence_gauge(text):
 
-    result = predict(text)
-
-    confidence = result["confidence"] * 100
+    emotion, confidence, probability = predict_text(text)
 
     fig = go.Figure(
-
         go.Indicator(
-
             mode="gauge+number",
-
-            value=confidence,
-
-            title={"text":"Confidence Score"},
-
+            value=confidence * 100,
+            title={"text": "Confidence Score"},
             gauge={
-
-                "axis":{"range":[0,100]}
-
+                "axis": {"range": [0, 100]}
             }
-
         )
-
     )
 
-    fig.update_layout(
-
-        height=350
-
-    )
+    fig.update_layout(height=350)
 
     return fig
+
 
 # ==========================================================
 # TOP EMOTION
@@ -144,9 +108,10 @@ def confidence_gauge(text):
 
 def top_emotion(text):
 
-    result = predict(text)
+    emotion, confidence, probability = predict_text(text)
 
-    return result["emotion"]
+    return emotion
+
 
 # ==========================================================
 # TOP PROBABILITY
@@ -154,15 +119,10 @@ def top_emotion(text):
 
 def top_probability(text):
 
-    result = predict(text)
+    emotion, confidence, probability = predict_text(text)
 
-    return round(
+    return round(confidence * 100, 2)
 
-        result["confidence"]*100,
-
-        2
-
-    )
 
 # ==========================================================
 # PROBABILITY TABLE
@@ -173,12 +133,11 @@ def probability_table(text):
     df = probability_dataframe(text)
 
     df["Probability"] = (
-
-        df["Probability"]*100
-
+        df["Probability"] * 100
     ).round(2)
 
     return df
+
 
 # ==========================================================
 # MULTIPLE REVIEW
@@ -186,21 +145,18 @@ def probability_table(text):
 
 def dataframe_probability(df):
 
-    emotion_probability = df.copy()
+    data = df.copy()
 
-    emotion_probability["Dominant Emotion"] = emotion_probability[
-
+    data["Dominant Emotion"] = data[
         EMOTION_LABELS
-
     ].idxmax(axis=1)
 
-    emotion_probability["Confidence"] = emotion_probability[
-
+    data["Confidence"] = data[
         EMOTION_LABELS
-
     ].max(axis=1)
 
-    return emotion_probability
+    return data
+
 
 # ==========================================================
 # HEATMAP
@@ -209,24 +165,18 @@ def dataframe_probability(df):
 def probability_heatmap(df):
 
     fig = px.imshow(
-
         df[EMOTION_LABELS].T,
-
         aspect="auto",
-
         color_continuous_scale="Blues"
-
     )
 
     fig.update_layout(
-
         title="Emotion Probability Heatmap",
-
         height=500
-
     )
 
     return fig
+
 
 # ==========================================================
 # AVERAGE PROBABILITY
@@ -234,22 +184,22 @@ def probability_heatmap(df):
 
 def average_probability(df):
 
-    avg = df[EMOTION_LABELS].mean()
-
-    avg = avg.reset_index()
+    avg = (
+        df[EMOTION_LABELS]
+        .mean()
+        .reset_index()
+    )
 
     avg.columns = [
-
         "Emotion",
-
         "Average Probability"
-
     ]
 
     return avg
 
+
 # ==========================================================
-# AVERAGE BAR
+# AVERAGE BAR CHART
 # ==========================================================
 
 def average_probability_chart(df):
@@ -257,28 +207,20 @@ def average_probability_chart(df):
     avg = average_probability(df)
 
     fig = px.bar(
-
         avg,
-
         x="Emotion",
-
         y="Average Probability",
-
         color="Emotion",
-
         text_auto=".2f"
-
     )
 
     fig.update_layout(
-
         title="Average Emotion Probability",
-
         height=450
-
     )
 
     return fig
+
 
 # ==========================================================
 # SUMMARY
@@ -292,7 +234,7 @@ def probability_summary(df):
 
         round(
 
-            df["Confidence"].mean()*100,
+            df["Confidence"].mean() * 100,
 
             2
 
