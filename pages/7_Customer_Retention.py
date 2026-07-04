@@ -154,6 +154,7 @@ display_columns = [
         "Risk Level",
         "Priority",
         "Retention Strategy"
+        "Recommended Action"
 
     ]
 
