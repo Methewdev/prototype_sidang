@@ -147,7 +147,11 @@ display_columns = [
 ]
 
 st.subheader("Prediction Result")
-
+st.dataframe(
+    prediction_display[display_columns],
+    use_container_width=True,
+    hide_index=True
+)
 st.dataframe(
     prediction_df[
         display_columns
