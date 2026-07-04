@@ -2,31 +2,33 @@
 =========================================================
 VISUALIZATION MODULE
 =========================================================
-Plotly Visualization
-=========================================================
 """
 
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
+
 from wordcloud import WordCloud
 
-import matplotlib.pyplot as plt
-
-from config import EMOTION_COLOR
-
-# ==========================================================
-# EMOTION PIE CHART
-# ==========================================================
+from config import EMOTION_LABELS
+# =====================================================
+# PIE CHART
+# =====================================================
 
 def emotion_pie(df):
 
-    emotion_count = (
+    emotion = (
+
         df["emotion"]
+
         .value_counts()
+
         .reset_index()
+
     )
 
-    emotion_count.columns = [
+    emotion.columns = [
 
         "Emotion",
 
@@ -36,44 +38,40 @@ def emotion_pie(df):
 
     fig = px.pie(
 
-        emotion_count,
-
-        values="Total",
+        emotion,
 
         names="Emotion",
 
-        color="Emotion",
+        values="Total",
 
-        color_discrete_map=EMOTION_COLOR,
-
-        hole=0.4
+        hole=0.45
 
     )
 
     fig.update_layout(
 
-        title="Emotion Distribution",
-
-        height=450
+        title="Emotion Distribution"
 
     )
 
     return fig
-
-
-# ==========================================================
-# EMOTION BAR
-# ==========================================================
+    # =====================================================
+# BAR CHART
+# =====================================================
 
 def emotion_bar(df):
 
-    emotion_count = (
+    emotion = (
+
         df["emotion"]
+
         .value_counts()
+
         .reset_index()
+
     )
 
-    emotion_count.columns = [
+    emotion.columns = [
 
         "Emotion",
 
@@ -83,7 +81,7 @@ def emotion_bar(df):
 
     fig = px.bar(
 
-        emotion_count,
+        emotion,
 
         x="Emotion",
 
@@ -91,53 +89,20 @@ def emotion_bar(df):
 
         color="Emotion",
 
-        color_discrete_map=EMOTION_COLOR,
-
         text_auto=True
 
     )
 
     fig.update_layout(
 
-        title="Emotion Distribution",
-
-        height=450
+        height=400
 
     )
 
     return fig
-
-
-# ==========================================================
-# CONFIDENCE HISTOGRAM
-# ==========================================================
-
-def confidence_histogram(df):
-
-    fig = px.histogram(
-
-        df,
-
-        x="confidence",
-
-        nbins=20
-
-    )
-
-    fig.update_layout(
-
-        title="Confidence Distribution",
-
-        height=450
-
-    )
-
-    return fig
-
-
-# ==========================================================
-# SEGMENT BAR
-# ==========================================================
+    # =====================================================
+# SEGMENT
+# =====================================================
 
 def segment_bar(df):
 
@@ -167,71 +132,16 @@ def segment_bar(df):
 
         y="Total",
 
+        color="Segment",
+
         text_auto=True
 
     )
 
-    fig.update_layout(
-
-        title="Customer Segment",
-
-        height=450
-
-    )
-
     return fig
-
-
-# ==========================================================
-# SEGMENT PIE
-# ==========================================================
-
-def segment_pie(df):
-
-    segment = (
-
-        df["Customer Segment"]
-
-        .value_counts()
-
-        .reset_index()
-
-    )
-
-    segment.columns=[
-
-        "Segment",
-
-        "Total"
-
-    ]
-
-    fig = px.pie(
-
-        segment,
-
-        values="Total",
-
-        names="Segment",
-
-        hole=0.4
-
-    )
-
-    fig.update_layout(
-
-        title="Customer Segment Distribution",
-
-        height=450
-
-    )
-
-    return fig
-
-
-# ==========================================================
-# PRIORITY BAR
-# ==========================================================
+    # =====================================================
+# PRIORITY
+# =====================================================
 
 def priority_bar(df):
 
@@ -245,7 +155,7 @@ def priority_bar(df):
 
     )
 
-    priority.columns=[
+    priority.columns = [
 
         "Priority",
 
@@ -267,67 +177,60 @@ def priority_bar(df):
 
     )
 
-    fig.update_layout(
+    return fig
+    # =====================================================
+# CONFIDENCE
+# =====================================================
 
-        title="Priority Distribution",
+def confidence_histogram(df):
 
-        height=450
+    fig = px.histogram(
+
+        df,
+
+        x="confidence",
+
+        nbins=20
 
     )
 
     return fig
-
-
-# ==========================================================
+    # =====================================================
 # HEATMAP
-# ==========================================================
+# =====================================================
 
 def probability_heatmap(df):
 
+    probability = df[EMOTION_LABELS]
+
     fig = px.imshow(
 
-        df[
-
-            [
-
-                "Frustrasi",
-
-                "Netral",
-
-                "Sedih",
-
-                "Senang"
-
-            ]
-
-        ].T,
+        probability.T,
 
         aspect="auto",
 
-        color_continuous_scale="Blues"
+        labels={
 
-    )
+            "x":"Review",
 
-    fig.update_layout(
+            "y":"Emotion",
 
-        title="Emotion Probability Heatmap",
+            "color":"Probability"
 
-        height=500
+        }
 
     )
 
     return fig
-
-
-# ==========================================================
+    # =====================================================
 # WORD CLOUD
-# ==========================================================
+# =====================================================
 
 def create_wordcloud(df):
 
     text = " ".join(
 
-        df["processed_text"]
+        df["final_text"]
 
         .astype(str)
 
@@ -335,9 +238,9 @@ def create_wordcloud(df):
 
     wc = WordCloud(
 
-        width=1000,
+        width=1200,
 
-        height=500,
+        height=600,
 
         background_color="white"
 
@@ -349,38 +252,67 @@ def create_wordcloud(df):
 
     )
 
-    ax.imshow(
-
-        wc,
-
-        interpolation="bilinear"
-
-    )
+    ax.imshow(wc)
 
     ax.axis("off")
 
     return fig
+    # =====================================================
+# TOP WORD
+# =====================================================
 
+from collections import Counter
 
-# ==========================================================
-# KPI CARD
-# ==========================================================
+def top_words(
 
-def dashboard_metric(df):
+    df,
+
+    n=20
+
+):
+
+    words = " ".join(
+
+        df["final_text"]
+
+    ).split()
+
+    counter = Counter(words)
+
+    data = pd.DataFrame(
+
+        counter.most_common(n),
+
+        columns=[
+
+            "Word",
+
+            "Frequency"
+
+        ]
+
+    )
+
+    return data
+    # =====================================================
+# KPI
+# =====================================================
+
+def dashboard_kpi(df):
 
     return {
 
         "Total Review":len(df),
 
-        "Dominant Emotion":
+        "Emotion":
 
         df["emotion"].mode()[0],
 
-        "Dominant Segment":
+        "Segment":
 
         df["Customer Segment"].mode()[0],
 
-        "Average Confidence":
+        "Confidence":
 
         round(
 
@@ -391,84 +323,4 @@ def dashboard_metric(df):
         )
 
     }
-
-
-# ==========================================================
-# EMOTION TABLE
-# ==========================================================
-
-def emotion_table(df):
-
-    table = (
-
-        df["emotion"]
-
-        .value_counts()
-
-        .reset_index()
-
-    )
-
-    table.columns=[
-
-        "Emotion",
-
-        "Total"
-
-    ]
-
-    return table
-
-
-# ==========================================================
-# SEGMENT TABLE
-# ==========================================================
-
-def segment_table(df):
-
-    table=(
-
-        df["Customer Segment"]
-
-        .value_counts()
-
-        .reset_index()
-
-    )
-
-    table.columns=[
-
-        "Segment",
-
-        "Total"
-
-    ]
-
-    return table
-
-
-# ==========================================================
-# PRIORITY TABLE
-# ==========================================================
-
-def priority_table(df):
-
-    table=(
-
-        df["Priority"]
-
-        .value_counts()
-
-        .reset_index()
-
-    )
-
-    table.columns=[
-
-        "Priority",
-
-        "Total"
-
-    ]
-
-    return table
+    
