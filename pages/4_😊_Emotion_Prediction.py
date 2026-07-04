@@ -61,14 +61,21 @@ if st.button(
             prediction_df
         )
 
-    st.success("Prediction selesai.")
-    if "prediction_df" not in st.session_state:
+ st.success("Prediction selesai.")
+
+# =====================================================
+# DISPLAY
+# =====================================================
+
+if "prediction_df" not in st.session_state:
 
     st.info(
         "Klik tombol **Jalankan Emotion Prediction**."
     )
 
     st.stop()
+
+prediction_df = st.session_state["prediction_df"]
 
 prediction_df = st.session_state["prediction_df"]
 summary = prediction_summary(
