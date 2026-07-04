@@ -460,45 +460,42 @@ confidence = prediction["confidence"] * 100
 
 if emotion == "Frustrasi":
 
-    if confidence >= 90:
+    segment = "😠 Nasabah Frustasi"
 
-        segment = "🔴 High Risk Customer"
-
-        description = """
-Pelanggan mengalami frustrasi tinggi terhadap aplikasi.
-Memerlukan perhatian dan penanganan segera.
-"""
-
-    else:
-
-        segment = "🟠 At Risk Customer"
-
-        description = """
-Pelanggan mulai menunjukkan frustrasi,
-namun tingkat keyakinan model belum terlalu tinggi.
-"""
-
-elif emotion == "Marah":
-
-    segment = "🟠 At Risk Customer"
+    risk = "Very High"
 
     description = """
-Pelanggan menunjukkan kemarahan terhadap layanan.
-Perlu dilakukan evaluasi terhadap penyebab keluhan.
+Pelanggan mengalami frustrasi tinggi terhadap aplikasi
+dan memerlukan penanganan segera.
+"""
+
+elif emotion == "Sedih":
+
+    segment = "😟 Nasabah Tidak Puas"
+
+    risk = "High"
+
+    description = """
+Pelanggan merasa kecewa terhadap layanan aplikasi
+dan berpotensi menurunkan loyalitas.
 """
 
 elif emotion == "Netral":
 
-    segment = "🟡 Passive Customer"
+    segment = "😐 Nasabah Passive"
+
+    risk = "Medium"
 
     description = """
-Pelanggan memberikan ulasan yang bersifat informatif
-tanpa menunjukkan emosi yang dominan.
+Pelanggan belum menunjukkan emosi dominan.
+Perlu dilakukan engagement lebih lanjut.
 """
 
 else:
 
-    segment = "🟢 Loyal Customer"
+    segment = "😊 Nasabah Puas"
+
+    risk = "Low"
 
     description = """
 Pelanggan merasa puas terhadap aplikasi
@@ -517,8 +514,8 @@ c1.metric(
 )
 
 c2.metric(
-    "Confidence",
-    f"{confidence:.2f}%"
+    "Risk Level",
+    risk
 )
 
 st.info(description)
@@ -533,58 +530,13 @@ st.subheader("❤️ Customer Retention Strategy")
 # =====================================================
 # RETENTION RULE
 # =====================================================
-
-if segment == "🔴 High Risk Customer":
-
-    priority = "🔴 High"
-
-    objective = "Mengurangi risiko churn dan meningkatkan kepuasan pelanggan."
-
-    actions = [
-        "Prioritaskan penanganan keluhan pelanggan.",
-        "Lakukan investigasi terhadap penyebab masalah.",
-        "Koordinasikan dengan tim pengembang apabila ditemukan bug.",
-        "Berikan informasi apabila perbaikan telah dilakukan.",
-        "Monitor review pelanggan setelah update aplikasi."
-    ]
-
-elif segment == "🟠 At Risk Customer":
-
-    priority = "🟠 Medium"
-
-    objective = "Mencegah pelanggan menjadi tidak puas."
-
-    actions = [
-        "Analisis penyebab utama keluhan.",
-        "Berikan edukasi penggunaan fitur apabila diperlukan.",
-        "Pastikan kendala pelanggan dapat direproduksi.",
-        "Monitor feedback pelanggan berikutnya."
-    ]
-
-elif segment == "🟡 Passive Customer":
-
-    priority = "🟡 Low"
-
-    objective = "Meningkatkan engagement pelanggan."
-
-    actions = [
-        "Dorong pelanggan mencoba fitur baru.",
-        "Berikan informasi mengenai update aplikasi.",
-        "Pantau perubahan sentimen pelanggan."
-    ]
-
-else:
-
-    priority = "🟢 Normal"
-
-    objective = "Mempertahankan kepuasan pelanggan."
-
-    actions = [
-        "Pertahankan kualitas layanan aplikasi.",
-        "Terus tingkatkan performa aplikasi.",
-        "Dorong pelanggan memberikan rating positif.",
-        "Jadikan review positif sebagai insight."
-    ]
+emotion_icon = {
+    "Senang": "😊",
+    "Netral": "😐",
+    "Sedih": "😢",
+    "Frustrasi": "😠"
+}
+    
 
 # =====================================================
 # METRIC
