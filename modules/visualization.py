@@ -1,7 +1,9 @@
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-
+from modules.visualization import (
+    segment_bar
+)
 # =====================================================
 # MISSING VALUE
 # =====================================================
