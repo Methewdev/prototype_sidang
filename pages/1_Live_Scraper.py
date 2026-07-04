@@ -56,10 +56,10 @@ with st.sidebar:
 
     count = st.slider(
         "Jumlah Review",
-        min_value=100,
-        max_value=5000,
-        value=500,
-        step=100
+        100,
+        5000,
+        500,
+        100
     )
 
     scrape_button = st.button(
