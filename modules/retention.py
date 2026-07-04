@@ -15,42 +15,31 @@ import pandas as pd
 RETENTION_RULE = {
 
     "😊 Nasabah Puas": {
-
         "Priority": "Low",
-
         "Retention Strategy":
         "Berikan reward, loyalty program, cashback, dan pertahankan kualitas layanan."
-
     },
 
-    "😐 Nasabah Passive ": {
-
+    "😐 Nasabah Passive": {
         "Priority": "Medium",
-
         "Retention Strategy":
-        "Tingkatkan engagement melalui edukasi fitur dan personalisasi promosi."
-
+        "Tingkatkan engagement melalui edukasi fitur, personalisasi promosi, dan komunikasi berkala."
     },
 
     "😟 Nasabah Tidak Puas": {
-
         "Priority": "High",
-
         "Retention Strategy":
-        "Tindak lanjuti keluhan pelanggan dan tingkatkan kualitas layanan."
-
+        "Tindak lanjuti keluhan pelanggan, lakukan follow-up secara proaktif, dan tingkatkan kualitas layanan."
     },
 
     "😠 Nasabah Frustasi": {
-
         "Priority": "Very High",
-
         "Retention Strategy":
-        "Prioritaskan penyelesaian masalah, customer service proaktif, dan kompensasi bila diperlukan."
-
+        "Prioritaskan penyelesaian masalah, lakukan eskalasi ke tim terkait, hubungi pelanggan secara proaktif, berikan kompensasi bila diperlukan, dan lakukan monitoring hingga masalah selesai."
     }
 
 }
+
 # =====================================================
 # CUSTOMER RETENTION
 # =====================================================
@@ -59,81 +48,66 @@ def customer_retention(df):
 
     data = df.copy()
 
-    priority = []
+    if "Customer Segment" not in data.columns:
+        raise ValueError(
+            "Kolom 'Customer Segment' tidak ditemukan."
+        )
 
+    priority = []
     recommendation = []
 
     for segment in data["Customer Segment"]:
 
-        rule = RETENTION_RULE.get(
+        segment = str(segment).strip()
 
-            segment,
+        rule = RETENTION_RULE.get(segment)
 
-            {
+        if rule is None:
 
-                "Priority": "Unknown",
+            priority.append("Unknown")
+            recommendation.append("-")
 
-                "Retention Strategy": "-"
+        else:
 
-            }
-
-        )
-
-        priority.append(
-
-            rule["Priority"]
-
-        )
-
-        recommendation.append(
-
-            rule["Retention Strategy"]
-
-        )
+            priority.append(rule["Priority"])
+            recommendation.append(rule["Retention Strategy"])
 
     data["Priority"] = priority
-
     data["Retention Strategy"] = recommendation
 
     return data
-    # =====================================================
+
+
+# =====================================================
 # SUMMARY
 # =====================================================
 
 def retention_summary(df):
 
+    if "Customer Segment" not in df.columns:
+        return pd.DataFrame()
+
     summary = (
-
         df["Customer Segment"]
-
         .value_counts()
-
         .reset_index()
-
     )
 
     summary.columns = [
-
         "Customer Segment",
-
         "Total Customer"
-
     ]
 
     summary["Percentage"] = (
-
         summary["Total Customer"]
-
-        /
-
-        summary["Total Customer"].sum()
-
+        / summary["Total Customer"].sum()
         * 100
-
     ).round(2)
 
     return summary
-    # =====================================================
+
+
+# =====================================================
 # STATISTICS
 # =====================================================
 
@@ -142,65 +116,61 @@ def retention_statistics(df):
     return {
 
         "Total Customer":
-
             len(df),
 
         "Highest Priority":
-
-            df["Priority"].mode()[0],
+            df["Priority"].mode()[0]
+            if "Priority" in df.columns
+            else "-",
 
         "Customer Segment":
-
             df["Customer Segment"].mode()[0]
+            if "Customer Segment" in df.columns
+            else "-"
 
     }
-    # =====================================================
+
+
+# =====================================================
 # PRIORITY DISTRIBUTION
 # =====================================================
 
 def priority_distribution(df):
 
+    if "Priority" not in df.columns:
+        return pd.DataFrame()
+
     priority = (
-
         df["Priority"]
-
         .value_counts()
-
         .reset_index()
-
     )
 
     priority.columns = [
-
         "Priority",
-
         "Total"
-
     ]
 
     return priority
-    # =====================================================
-# TOP STRATEGY
+
+
+# =====================================================
+# STRATEGY TABLE
 # =====================================================
 
 def strategy_table(df):
 
-    return (
-
-        df[
-
-            [
-
-                "Customer Segment",
-
-                "Priority",
-
-                "Retention Strategy"
-
-            ]
-
+    columns = [
+        col
+        for col in [
+            "Customer Segment",
+            "Priority",
+            "Retention Strategy"
         ]
+        if col in df.columns
+    ]
 
+    return (
+        df[columns]
         .drop_duplicates()
-
     )
