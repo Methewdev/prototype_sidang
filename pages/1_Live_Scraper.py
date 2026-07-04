@@ -122,13 +122,15 @@ if not st.session_state.raw_data.empty:
     )
 
     c3.metric(
-        "Latest Review",
-        info["Latest Review"].date()
+    "Latest Review",
+    info["Latest Review"].strftime("%d-%m-%Y")
+        
     )
 
     c4.metric(
-        "Oldest Review",
-        info["Oldest Review"].date()
+    "Oldest Review",
+    info["Oldest Review"].strftime("%d-%m-%Y")
+        
     )
 
     c5.metric(
