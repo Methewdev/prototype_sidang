@@ -13,6 +13,8 @@ Tokenization
 
 import re
 import string
+from collections import Counter
+
 import pandas as pd
 import streamlit as st
 
@@ -20,52 +22,47 @@ from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
 from config import SLANG_FILE
+
+
 # =========================================================
 # LOAD SLANG DICTIONARY
 # =========================================================
 
 @st.cache_resource
 def load_slang_dictionary():
-
     try:
-
         slang = pd.read_csv(SLANG_FILE)
 
-        slang.columns = [
-            c.lower().strip()
-            for c in slang.columns
-        ]
+        slang.columns = [c.lower().strip() for c in slang.columns]
 
         if "slang" in slang.columns and "formal" in slang.columns:
+            return dict(zip(slang["slang"], slang["formal"]))
 
-            return dict(
-                zip(
-                    slang["slang"],
-                    slang["formal"]
-                )
-            )
-
-        else:
-
-            return {}
+        return {}
 
     except Exception:
-        # =========================================================
-# STOPWORD
+        return {}
+
+
+SLANG_DICT = load_slang_dictionary()
+
+
+# =========================================================
+# STOPWORDS
 # =========================================================
 
-factory = StopWordRemoverFactory()
+stop_factory = StopWordRemoverFactory()
+STOPWORDS = set(stop_factory.get_stop_words())
 
-STOPWORDS = set(
-    factory.get_stop_words()
-)
+
 # =========================================================
 # STEMMER
 # =========================================================
 
-factory = StemmerFactory()
+stem_factory = StemmerFactory()
+stemmer = stem_factory.create_stemmer()
 
-stemmer = factory.create_stemmer()
+
 # =========================================================
 # CLEANING
 # =========================================================
@@ -77,103 +74,31 @@ def cleaning(text):
 
     text = str(text)
 
-    # URL
-    text = re.sub(
-        r"http\S+|www\S+",
-        " ",
-        text
-    )
+    text = re.sub(r"http\S+|www\S+", " ", text)
+    text = re.sub(r"\S+@\S+", " ", text)
+    text = re.sub(r"@\w+", " ", text)
+    text = re.sub(r"#\w+", " ", text)
+    text = re.sub(r"<.*?>", " ", text)
+    text = re.sub(r"\d+", " ", text)
 
-    # Email
-    text = re.sub(
-        r"\S+@\S+",
-        " ",
-        text
-    )
-
-    # Mention
-    text = re.sub(
-        r"@\w+",
-        " ",
-        text
-    )
-
-    # Hashtag
-    text = re.sub(
-        r"#\w+",
-        " ",
-        text
-    )
-
-    # HTML
-    text = re.sub(
-        r"<.*?>",
-        " ",
-        text
-    )
-
-    # Angka
-    text = re.sub(
-        r"\d+",
-        " ",
-        text
-    )
-
-    # Tanda baca
     text = text.translate(
-        str.maketrans(
-            "",
-            "",
-            string.punctuation
-        )
+        str.maketrans("", "", string.punctuation)
     )
 
-    # Karakter selain huruf
-    text = re.sub(
-        r"[^a-zA-Z\s]",
-        " ",
-        text
-    )
-
-    # Spasi berlebih
-    text = re.sub(
-        r"\s+",
-        " ",
-        text
-    )
+    text = re.sub(r"[^a-zA-Z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text)
 
     return text.strip()
-    # =========================================================
+
+
+# =========================================================
 # CASE FOLDING
 # =========================================================
 
 def case_folding(text):
-
     return str(text).lower()
-    # =========================================================
-# NORMALIZATION
-# =========================================================
 
-def normalization(text):
 
-    words = text.split()
-
-    words = [
-
-        SLANG_DICT.get(
-            word,
-            word
-        )
-
-        for word in words
-
-    ]
-
-    return " ".join(words)
-
-        return {}
-
-SLANG_DICT = load_slang_dictionary()
 # =========================================================
 # NORMALIZATION
 # =========================================================
@@ -183,17 +108,33 @@ def normalization(text):
     words = text.split()
 
     words = [
-
-        SLANG_DICT.get(
-            word,
-            word
-        )
-
+        SLANG_DICT.get(word, word)
         for word in words
-
     ]
 
     return " ".join(words)
+
+
+# =========================================================
+# STOPWORD REMOVAL
+# =========================================================
+
+def remove_stopword(text):
+
+    if pd.isna(text):
+        return ""
+
+    words = text.split()
+
+    words = [
+        word
+        for word in words
+        if word not in STOPWORDS
+    ]
+
+    return " ".join(words)
+
+
 # =========================================================
 # STEMMING
 # =========================================================
@@ -204,6 +145,8 @@ def stemming(text):
         return ""
 
     return stemmer.stem(text)
+
+
 # =========================================================
 # TOKENIZATION
 # =========================================================
@@ -214,44 +157,32 @@ def tokenization(text):
         return []
 
     return text.split()
+
+
 # =========================================================
 # PREPROCESS SINGLE TEXT
 # =========================================================
 
 def preprocess_text(text):
 
-    cleaning_text = cleaning(text)
-
-    case_text = case_folding(cleaning_text)
-
-    normalization_text = normalization(case_text)
-
-    stopword_text = remove_stopword(normalization_text)
-
-    stemming_text = stemming(stopword_text)
-
-    token_text = tokenization(stemming_text)
-
-    final_text = " ".join(token_text)
+    clean = cleaning(text)
+    lower = case_folding(clean)
+    normal = normalization(lower)
+    stop = remove_stopword(normal)
+    stem = stemming(stop)
+    token = tokenization(stem)
 
     return {
-
-        "cleaning": cleaning_text,
-
-        "case_folding": case_text,
-
-        "normalization": normalization_text,
-
-        "stopword": stopword_text,
-
-        "stemming": stemming_text,
-
-        "token": token_text,
-
-        "final_text": final_text
-
+        "cleaning": clean,
+        "case_folding": lower,
+        "normalization": normal,
+        "stopword": stop,
+        "stemming": stem,
+        "token": token,
+        "final_text": " ".join(token)
     }
-preprocess_dataframe(df, text_column)
+
+
 # =========================================================
 # PREPROCESS DATAFRAME
 # =========================================================
@@ -260,37 +191,18 @@ def preprocess_dataframe(df, text_column):
 
     df = df.copy()
 
-    results = df[text_column].apply(preprocess_text)
+    results = df[text_column].fillna("").apply(preprocess_text)
 
-    df["cleaning"] = results.apply(
-        lambda x: x["cleaning"]
-    )
-
-    df["case_folding"] = results.apply(
-        lambda x: x["case_folding"]
-    )
-
-    df["normalization"] = results.apply(
-        lambda x: x["normalization"]
-    )
-
-    df["stopword"] = results.apply(
-        lambda x: x["stopword"]
-    )
-
-    df["stemming"] = results.apply(
-        lambda x: x["stemming"]
-    )
-
-    df["token"] = results.apply(
-        lambda x: x["token"]
-    )
-
-    df["final_text"] = results.apply(
-        lambda x: x["final_text"]
-    )
+    df["cleaning"] = results.apply(lambda x: x["cleaning"])
+    df["case_folding"] = results.apply(lambda x: x["case_folding"])
+    df["normalization"] = results.apply(lambda x: x["normalization"])
+    df["stopword"] = results.apply(lambda x: x["stopword"])
+    df["stemming"] = results.apply(lambda x: x["stemming"])
+    df["token"] = results.apply(lambda x: x["token"])
+    df["final_text"] = results.apply(lambda x: x["final_text"])
 
     return df
+
 
 # =========================================================
 # PREPROCESSING STATISTICS
@@ -298,25 +210,17 @@ def preprocess_dataframe(df, text_column):
 
 def preprocessing_statistics(df):
 
-    stats = {
-
+    return {
         "Total Review": len(df),
-
         "Cleaning": df["cleaning"].notna().sum(),
-
         "Case Folding": df["case_folding"].notna().sum(),
-
         "Normalization": df["normalization"].notna().sum(),
-
         "Stopword": df["stopword"].notna().sum(),
-
         "Stemming": df["stemming"].notna().sum(),
-
         "Tokenization": df["token"].notna().sum()
-
     }
 
-    return stats
+
 # =========================================================
 # EMPTY REVIEW
 # =========================================================
@@ -324,73 +228,52 @@ def preprocessing_statistics(df):
 def empty_review(df):
 
     return int(
-
         df["final_text"]
-
         .fillna("")
-
         .str.strip()
-
         .eq("")
-
         .sum()
-
     )
+
+
 # =========================================================
 # AVERAGE LENGTH
 # =========================================================
 
 def average_length(df):
 
-    if len(df) == 0:
+    if df.empty:
         return 0
 
     return round(
-
         df["final_text"]
-
         .fillna("")
-
-        .apply(
-
-            lambda x: len(x.split())
-
-        )
-
+        .apply(lambda x: len(x.split()))
         .mean(),
-
         2
-
     )
-# =========================================================
-# WORD STATISTICS
-# =========================================================
 
-from collections import Counter
+
+# =========================================================
+# TOP WORDS
+# =========================================================
 
 def top_words(df, n=20):
 
     words = []
 
     for sentence in df["final_text"].fillna(""):
-
         words.extend(sentence.split())
 
     counter = Counter(words)
 
     return pd.DataFrame(
-
         counter.most_common(n),
+        columns=["Word", "Frequency"]
+    )
 
-        columns=[
 
-            "Word",
-
-            "Frequency"
-
-        ]
-
-    )# =========================================================
+# =========================================================
 # REVIEW LENGTH
 # =========================================================
 
@@ -399,46 +282,26 @@ def review_length(df):
     result = df.copy()
 
     result["review_length"] = (
-
         result["final_text"]
-
         .fillna("")
-
-        .apply(
-
-            lambda x: len(x.split())
-
-        )
-
+        .apply(lambda x: len(x.split()))
     )
 
     return result
+
+
 __all__ = [
-
     "cleaning",
-
     "case_folding",
-
     "normalization",
-
     "remove_stopword",
-
     "stemming",
-
     "tokenization",
-
     "preprocess_text",
-
     "preprocess_dataframe",
-
     "preprocessing_statistics",
-
     "average_length",
-
     "empty_review",
-
     "top_words",
-
-    "review_length"
-
+    "review_length",
 ]
