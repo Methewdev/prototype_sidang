@@ -13,7 +13,7 @@ from modules.preprocessing import (
 )
 
 from modules.prediction import (
-    predict_single_review
+    predict_text
 )
 
 # =====================================================
@@ -78,7 +78,7 @@ if analyze:
             review
         )
 
-        prediction = predict_single_review(
+        prediction = predict_text(
             preprocess["final_text"]
         )
 
