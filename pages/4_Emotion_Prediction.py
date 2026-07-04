@@ -136,7 +136,10 @@ st.markdown("---")
 display_columns = [
     col
     for col in [
+        "prediction_id",
         "content",
+        "clean_text",
+        "final_text",
         "emotion",
         "confidence"
     ]
