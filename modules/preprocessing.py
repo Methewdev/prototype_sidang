@@ -18,7 +18,30 @@ import pandas as pd
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
-from indonlp.preprocessing import replace_slang
+import json
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+SLANG_PATH = os.path.join(
+    BASE_DIR,
+    "assets",
+    "slang_dict.json"
+)
+
+def replace_slang(text):
+
+    words = text.split()
+
+    words = [
+        SLANG_DICT.get(word.lower(), word)
+        for word in words
+    ]
+
+    return " ".join(words)
+
+with open(SLANG_PATH, "r", encoding="utf-8") as f:
+    SLANG_DICT = json.load(f)
 
 from config import *
 
