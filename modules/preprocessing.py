@@ -24,27 +24,6 @@ from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFacto
 from config import SLANG_FILE
 
 
-# =========================================================
-# LOAD SLANG DICTIONARY
-# =========================================================
-
-@st.cache_resource
-def load_slang_dictionary():
-    try:
-        slang = pd.read_csv(SLANG_FILE)
-
-        slang.columns = [c.lower().strip() for c in slang.columns]
-
-        if "slang" in slang.columns and "formal" in slang.columns:
-            return dict(zip(slang["slang"], slang["formal"]))
-
-        return {}
-
-    except Exception:
-        return {}
-
-
-SLANG_DICT = load_slang_dictionary()
 
 
 # =========================================================
