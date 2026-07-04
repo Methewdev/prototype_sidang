@@ -130,31 +130,30 @@ c3.metric(
 st.markdown("---")
 
 # =====================================================
-# RESULT
+# DISPLAY COLUMN
 # =====================================================
 
+if "review" in prediction_df.columns:
+
+    text_column = "review"
+
+elif "content" in prediction_df.columns:
+
+    text_column = "content"
+
+else:
+
+    text_column = prediction_df.columns[0]
+
 display_columns = [
-    col
-    for col in [
-        "content",
-        "emotion",
-        "confidence"
-    ]
-    if col in prediction_df.columns
+
+    text_column,
+
+    "emotion",
+
+    "confidence"
+
 ]
-
-st.subheader("Prediction Result")
-
-st.dataframe(
-    prediction_df[
-        display_columns
-    ],
-    use_container_width=True,
-    height=450
-)
-
-st.markdown("---")
-
 # =====================================================
 # VISUALIZATION
 # =====================================================
