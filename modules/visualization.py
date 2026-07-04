@@ -1,9 +1,7 @@
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-from modules.visualization import (
-    segment_bar
-)
+
 # =====================================================
 # MISSING VALUE
 # =====================================================
@@ -442,34 +440,7 @@ def confidence_histogram(df):
     # =====================================================
 # CUSTOMER SEGMENT BAR
 # =====================================================
+    # =====================================================
+# CUSTOMER SEGMENT BAR
+# =====================================================
 
-def segment_bar(df):
-
-    if "Customer Segment" not in df.columns:
-        return go.Figure()
-
-    segment = (
-        df["Customer Segment"]
-        .value_counts()
-        .reset_index()
-    )
-
-    segment.columns = [
-        "Customer Segment",
-        "Total"
-    ]
-
-    fig = px.bar(
-        segment,
-        x="Customer Segment",
-        y="Total",
-        text="Total",
-        color="Customer Segment"
-    )
-
-    fig.update_layout(
-        title="Customer Segment Distribution",
-        height=450
-    )
-
-    return fig
