@@ -294,6 +294,54 @@ st.subheader("🤖 Emotion Prediction")
 emotion = prediction["emotion"]
 confidence = prediction["confidence"] * 100
 
+
+# =====================================================
+# CUSTOMER SEGMENT
+# =====================================================
+
+if emotion == "Frustrasi":
+
+    segment = "😠 Nasabah Frustasi"
+
+    risk = "Very High"
+
+    description = """
+Pelanggan mengalami frustrasi tinggi terhadap aplikasi
+dan memerlukan penanganan segera.
+"""
+
+elif emotion == "Sedih":
+
+    segment = "😟 Nasabah Tidak Puas"
+
+    risk = "High"
+
+    description = """
+Pelanggan merasa kecewa terhadap layanan aplikasi
+dan berpotensi menurunkan loyalitas.
+"""
+
+elif emotion == "Netral":
+
+    segment = "😐 Nasabah Passive"
+
+    risk = "Medium"
+
+    description = """
+Pelanggan belum menunjukkan emosi dominan.
+Perlu dilakukan engagement lebih lanjut.
+"""
+
+else:
+
+    segment = "😊 Nasabah Puas"
+
+    risk = "Low"
+
+    description = """
+Pelanggan merasa puas terhadap aplikasi
+dan berpotensi menjadi pengguna loyal.
+"""
 # =====================================================
 # EMOTION ICON
 # =====================================================
