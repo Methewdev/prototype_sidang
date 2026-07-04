@@ -24,3 +24,6 @@ Pillow>=11.0
 indonlp>=0.3.4
 
 nltk>=3.9
+clean-text>=0.6.0
+emoji
+ftfy
