@@ -30,9 +30,7 @@ st.set_page_config(
 # =====================================================
 
 if CSS_FILE.exists():
-
     with open(CSS_FILE, "r", encoding="utf-8") as f:
-
         st.markdown(
             f"<style>{f.read()}</style>",
             unsafe_allow_html=True
@@ -45,8 +43,7 @@ if CSS_FILE.exists():
 with st.sidebar:
 
     if LOGO.exists():
-
-        st.image(str(LOGO), width=180)
+        st.image(str(LOGO), use_container_width=True)
 
     st.title(APP_TITLE)
 
@@ -54,72 +51,51 @@ with st.sidebar:
 
     st.success("Version 1.0")
 
-    st.markdown("## Workflow")
+    st.markdown(
+        """
+### Workflow
 
-st.page_link(
-    "pages/1_Upload_Dataset.py",
-    label="📂 Upload Dataset"
-)
+Pilih menu pada sidebar sebelah kiri untuk memulai analisis.
 
-st.page_link(
-    "pages/2_Data_Understanding.py",
-    label="📊 Data Understanding"
-)
-
-st.page_link(
-    "pages/3_Preprocessing.py",
-    label="🧹 Preprocessing"
-)
-
-st.page_link(
-    "pages/4_Emotion_Prediction.py",
-    label="🤖 Emotion Prediction"
-)
-
-st.page_link(
-    "pages/5_Emotion_Probability.py",
-    label="📈 Emotion Probability"
-)
-
-st.page_link(
-    "pages/6_Customer_Segmentation.py",
-    label="👥 Customer Segmentation"
-)
-
-st.page_link(
-    "pages/7_Customer_Retention.py",
-    label="💡 Customer Retention"
-)
-
-st.page_link(
-    "pages/8_Dashboard.py",
-    label="📊 Dashboard"
-)
+1. Upload Dataset
+2. Data Understanding
+3. Preprocessing
+4. Emotion Prediction
+5. Emotion Probability
+6. Customer Segmentation
+7. Customer Retention
+8. Dashboard
+"""
+    )
 
 # =====================================================
 # HOME
 # =====================================================
 
-st.title("📊 Livin Emotion Analysis")
+st.title("📊 Livin Emotion Analysis Dashboard")
 
 st.markdown("---")
 
 st.markdown(
 """
-Aplikasi ini digunakan untuk melakukan analisis emosi ulasan
-Google Play **Livin' by Mandiri** menggunakan
+Selamat datang di **Livin Emotion Analysis Dashboard**.
+
+Aplikasi ini digunakan untuk melakukan analisis emosi terhadap ulasan
+Google Play **Livin' by Mandiri** menggunakan model
 **Fine-Tuned IndoBERT**.
 
-### Tahapan Analisis
+Seluruh proses analisis dilakukan secara bertahap mulai dari:
 
-1. Upload Dataset
-2. Data Understanding
-3. Text Preprocessing
-4. Emotion Prediction
-5. Emotion Probability
-6. Customer Segmentation
-7. Customer Retention
-8. Dashboard Analytics
+- 📂 Upload Dataset
+- 📊 Data Understanding
+- 🧹 Text Preprocessing
+- 🤖 Emotion Prediction
+- 📈 Emotion Probability
+- 👥 Customer Segmentation
+- 💡 Customer Retention
+- 📊 Dashboard Analytics
+
+Silakan pilih halaman pada **sidebar** untuk memulai proses analisis.
 """
 )
 
@@ -128,9 +104,8 @@ st.markdown("---")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-
     st.info(
-"""
+        """
 ### 🤖 Model
 
 Fine-Tuned IndoBERT
@@ -138,9 +113,8 @@ Fine-Tuned IndoBERT
     )
 
 with col2:
-
     st.info(
-"""
+        """
 ### 📄 Dataset
 
 Google Play Review
@@ -148,16 +122,13 @@ Google Play Review
     )
 
 with col3:
-
     st.info(
-"""
+        """
 ### 🎯 Output
 
-Emotion Classification
-
-Customer Segmentation
-
-Customer Retention
+- Emotion Classification
+- Customer Segmentation
+- Customer Retention
 """
     )
 
@@ -165,7 +136,7 @@ st.markdown("---")
 
 st.success(
 """
-Silakan pilih menu pada sidebar untuk memulai analisis.
+✅ Gunakan menu **Pages** pada sidebar sebelah kiri untuk berpindah antar halaman analisis.
 """
 )
 
