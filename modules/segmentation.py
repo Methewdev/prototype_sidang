@@ -45,7 +45,7 @@ SEGMENT_MAPPING = {
     },
 
     "Sedih": {
-        "Customer Segment": "😟 Nasabah Berisiko",
+        "Customer Segment": "😟 Nasabah Tidak Puas",
         "Risk Level": "High"
     },
 
