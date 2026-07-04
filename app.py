@@ -18,7 +18,7 @@ from config import (
 # PAGE CONFIG
 # =====================================================
 
-st.set_pages_config(
+st.set_page_config(
     page_title=APP_TITLE,
     page_icon=APP_ICON,
     layout="wide",
