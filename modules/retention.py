@@ -2,100 +2,101 @@
 =========================================================
 CUSTOMER RETENTION MODULE
 =========================================================
+Livin Emotion Analysis
+=========================================================
 """
 
 import pandas as pd
+
 # =====================================================
-# SEGMENT PROFILE
+# RETENTION STRATEGY
 # =====================================================
 
-SEGMENT_PROFILE = {
+RETENTION_RULE = {
 
-    "Senang":{
+    "😊 Loyal Customer": {
 
-        "Segment":"😊 Loyal Customer",
+        "Priority": "Low",
 
-        "Risk":"Low",
-
-        "Retention":"Pertahankan kualitas layanan, berikan reward, cashback, loyalty program."
-
-    },
-
-    "Netral":{
-
-        "Segment":"😐 Passive Customer",
-
-        "Risk":"Medium",
-
-        "Retention":"Tingkatkan engagement melalui edukasi fitur dan personalisasi promosi."
+        "Retention Strategy":
+        "Berikan reward, loyalty program, cashback, dan pertahankan kualitas layanan."
 
     },
 
-    "Sedih":{
+    "😐 Passive Customer": {
 
-        "Segment":"😟 Unsatisfied Customer",
+        "Priority": "Medium",
 
-        "Risk":"High",
-
-        "Retention":"Lakukan follow-up terhadap keluhan dan tingkatkan kualitas layanan."
+        "Retention Strategy":
+        "Tingkatkan engagement melalui edukasi fitur dan personalisasi promosi."
 
     },
 
-    "Frustrasi":{
+    "😟 Unsatisfied Customer": {
 
-        "Segment":"😠 At-Risk Customer",
+        "Priority": "High",
 
-        "Risk":"Very High",
+        "Retention Strategy":
+        "Tindak lanjuti keluhan pelanggan dan tingkatkan kualitas layanan."
 
-        "Retention":"Prioritaskan penyelesaian masalah, percepat response customer service, dan berikan kompensasi apabila diperlukan."
+    },
+
+    "😠 At-Risk Customer": {
+
+        "Priority": "Critical",
+
+        "Retention Strategy":
+        "Prioritaskan penyelesaian masalah, customer service proaktif, dan kompensasi bila diperlukan."
 
     }
 
 }
 # =====================================================
-# RETENTION RECOMMENDATION
+# CUSTOMER RETENTION
 # =====================================================
 
 def customer_retention(df):
 
     data = df.copy()
 
-    segment = []
-
-    risk = []
+    priority = []
 
     recommendation = []
 
-    for emotion in data["emotion"]:
+    for segment in data["Customer Segment"]:
 
-        info = SEGMENT_PROFILE.get(emotion)
+        rule = RETENTION_RULE.get(
 
-        segment.append(
+            segment,
 
-            info["Segment"]
+            {
+
+                "Priority": "Unknown",
+
+                "Retention Strategy": "-"
+
+            }
 
         )
 
-        risk.append(
+        priority.append(
 
-            info["Risk"]
+            rule["Priority"]
 
         )
 
         recommendation.append(
 
-            info["Retention"]
+            rule["Retention Strategy"]
 
         )
 
-    data["Customer Type"] = segment
-
-    data["Risk Level"] = risk
+    data["Priority"] = priority
 
     data["Retention Strategy"] = recommendation
 
     return data
-  # =====================================================
+    # =====================================================
 # SUMMARY
 # =====================================================
 
@@ -103,7 +104,7 @@ def retention_summary(df):
 
     summary = (
 
-        df["Customer Type"]
+        df["Customer Segment"]
 
         .value_counts()
 
@@ -113,51 +114,26 @@ def retention_summary(df):
 
     summary.columns = [
 
-        "Customer Type",
+        "Customer Segment",
 
-        "Total"
+        "Total Customer"
 
     ]
 
     summary["Percentage"] = (
 
-        summary["Total"]
+        summary["Total Customer"]
 
         /
 
-        summary["Total"].sum()
+        summary["Total Customer"].sum()
 
-        *100
+        * 100
 
     ).round(2)
 
     return summary
-  # =====================================================
-# RISK DISTRIBUTION
-# =====================================================
-
-def risk_distribution(df):
-
-    risk = (
-
-        df["Risk Level"]
-
-        .value_counts()
-
-        .reset_index()
-
-    )
-
-    risk.columns = [
-
-        "Risk",
-
-        "Total"
-
-    ]
-
-    return risk
-  # =====================================================
+    # =====================================================
 # STATISTICS
 # =====================================================
 
@@ -167,18 +143,64 @@ def retention_statistics(df):
 
         "Total Customer":
 
-        len(df),
+            len(df),
 
-        "Customer Type":
+        "Highest Priority":
 
-        df["Customer Type"]
+            df["Priority"].mode()[0],
 
-        .nunique(),
+        "Customer Segment":
 
-        "Highest Risk":
-
-        df["Risk Level"]
-
-        .mode()[0]
+            df["Customer Segment"].mode()[0]
 
     }
+    # =====================================================
+# PRIORITY DISTRIBUTION
+# =====================================================
+
+def priority_distribution(df):
+
+    priority = (
+
+        df["Priority"]
+
+        .value_counts()
+
+        .reset_index()
+
+    )
+
+    priority.columns = [
+
+        "Priority",
+
+        "Total"
+
+    ]
+
+    return priority
+    # =====================================================
+# TOP STRATEGY
+# =====================================================
+
+def strategy_table(df):
+
+    return (
+
+        df[
+
+            [
+
+                "Customer Segment",
+
+                "Priority",
+
+                "Retention Strategy"
+
+            ]
+
+        ]
+
+        .drop_duplicates()
+
+    )
