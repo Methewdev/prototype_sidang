@@ -137,6 +137,10 @@ st.markdown("---")
 # RETENTION RECOMMENDATION
 # =====================================================
 
+# =====================================================
+# RETENTION RECOMMENDATION
+# =====================================================
+
 st.subheader(
     "Retention Recommendation"
 )
@@ -153,7 +157,7 @@ display_columns = [
         "Customer Segment",
         "Risk Level",
         "Priority",
-        "Retention Strategy"
+        "Retention Strategy",
         "Recommended Action"
 
     ]
