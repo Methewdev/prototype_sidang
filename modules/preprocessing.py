@@ -6,31 +6,14 @@ Livin Emotion Analysis
 """
 
 import re
-import string
-import unicodedata
-
 import pandas as pd
-import nltk
 
-from cleantext import clean
-
-from nltk.tokenize import word_tokenize
+from config import SLANG_FILE
 
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import (
     StopWordRemoverFactory
 )
-
-from config import SLANG_FILE
-
-# =====================================================
-# DOWNLOAD NLTK
-# =====================================================
-
-try:
-    nltk.data.find("tokenizers/punkt")
-except LookupError:
-    nltk.download("punkt")
 
 # =====================================================
 # INITIALIZE
@@ -38,12 +21,46 @@ except LookupError:
 
 stemmer = StemmerFactory().create_stemmer()
 
-stop_factory = StopWordRemoverFactory()
+stopword = StopWordRemoverFactory().create_stop_word_remover()
 
-stopwords = set(
-    stop_factory.get_stop_words()
-)
-load_slang_dictionary()
+# =====================================================
+# LOAD SLANG DICTIONARY
+# =====================================================
+
+def load_slang_dictionary():
+
+    if not SLANG_FILE.exists():
+
+        raise FileNotFoundError(
+            f"File slang tidak ditemukan:\n{SLANG_FILE}"
+        )
+
+    # membaca file dari GitHub new_kamus_alay.csv
+    slang_df = pd.read_csv(
+        SLANG_FILE,
+        header=None,
+        names=["slang", "formal"],
+        encoding="utf-8"
+    )
+
+    slang_df = slang_df.dropna()
+
+    slang_df["slang"] = slang_df["slang"].astype(str).str.strip()
+
+    slang_df["formal"] = slang_df["formal"].astype(str).str.strip()
+
+    slang_dict = dict(
+        zip(
+            slang_df["slang"],
+            slang_df["formal"]
+        )
+    )
+
+    return slang_dict
+
+
+SLANG_DICT = load_slang_dictionary()
+
 # =====================================================
 # CLEANING
 # =====================================================
@@ -51,7 +68,6 @@ load_slang_dictionary()
 def cleaning(text):
 
     if pd.isna(text):
-
         return ""
 
     text = str(text)
@@ -68,84 +84,209 @@ def cleaning(text):
     # Hashtag
     text = re.sub(r"#\w+", " ", text)
 
-    # HTML
-    text = re.sub(r"<.*?>", " ", text)
+    # Angka
+    text = re.sub(r"\d+", " ", text)
 
     # Emoji
     text = re.sub(r"[^\w\s]", " ", text)
-
-    # Angka
-    text = re.sub(r"\d+", " ", text)
 
     # Multiple Space
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
-    # =====================================================
+
+
+# =====================================================
 # CASE FOLDING
 # =====================================================
 
 def case_folding(text):
 
     if pd.isna(text):
-
         return ""
 
     return str(text).lower()
-    # =====================================================
-# CLEAN TEXT
+
+
+# =====================================================
+# NORMALIZATION
 # =====================================================
 
-def clean_text(text):
+def normalization(text):
 
     if pd.isna(text):
-
         return ""
 
-    text = clean(
+    words = str(text).split()
 
-        text,
+    normalized = []
 
-        fix_unicode=True,
+    for word in words:
 
-        to_ascii=False,
+        normalized.append(
 
-        lower=False,
+            SLANG_DICT.get(
 
-        no_line_breaks=True,
+                word,
 
-        no_urls=True,
+                word
 
-        no_emails=True,
+            )
 
-        no_phone_numbers=True,
+        )
 
-        no_numbers=False,
+    return " ".join(normalized)
 
-        no_digits=False,
 
-        no_currency_symbols=True,
+# =====================================================
+# STOPWORD REMOVAL
+# =====================================================
 
-        no_punct=False
+def stopword_removal(text):
+
+    if pd.isna(text):
+        return ""
+
+    return stopword.remove(str(text))
+
+
+# =====================================================
+# STEMMING
+# =====================================================
+
+def stemming(text):
+
+    if pd.isna(text):
+        return ""
+
+    return stemmer.stem(str(text))
+
+
+# =====================================================
+# TOKENIZATION
+# =====================================================
+
+def tokenization(text):
+
+    if pd.isna(text):
+        return ""
+
+    tokens = str(text).split()
+
+    return " | ".join(tokens)
+
+
+# =====================================================
+# PREPROCESS SINGLE TEXT
+# =====================================================
+
+def preprocess_text(text):
+
+    clean = cleaning(text)
+
+    lower = case_folding(clean)
+
+    normal = normalization(lower)
+
+    stop = stopword_removal(normal)
+
+    stem = stemming(stop)
+
+    token = tokenization(stem)
+
+    return {
+
+        "cleaning": clean,
+
+        "case_folding": lower,
+
+        "normalization": normal,
+
+        "stopword": stop,
+
+        "stemming": stem,
+
+        "token": token,
+
+        "final_text": stem
+
+    }
+
+
+# =====================================================
+# PREPROCESS DATAFRAME
+# =====================================================
+
+def preprocess_dataframe(df, text_column):
+
+    data = df.copy()
+
+    result = data[text_column].apply(preprocess_text)
+
+    result = pd.DataFrame(result.tolist())
+
+    data = pd.concat(
+
+        [
+
+            data,
+
+            result
+
+        ],
+
+        axis=1
 
     )
 
-    text = unicodedata.normalize(
+    return data
 
-        "NFKC",
 
-        text
+# =====================================================
+# PREVIEW
+# =====================================================
 
-    )
+def preview_preprocessing(df, n=10):
 
-    text = re.sub(
+    columns = [
 
-        r"\s+",
+        "cleaning",
 
-        " ",
+        "case_folding",
 
-        text
+        "normalization",
 
-    )
+        "stopword",
 
-    return text.strip()
+        "stemming",
+
+        "token"
+
+    ]
+
+    return df[columns].head(n)
+
+
+# =====================================================
+# PREPROCESS STATISTIC
+# =====================================================
+
+def preprocessing_statistics(df):
+
+    return {
+
+        "Total Review": len(df),
+
+        "Cleaning": df["cleaning"].notna().sum(),
+
+        "Case Folding": df["case_folding"].notna().sum(),
+
+        "Normalization": df["normalization"].notna().sum(),
+
+        "Stopword": df["stopword"].notna().sum(),
+
+        "Stemming": df["stemming"].notna().sum(),
+
+        "Tokenization": df["token"].notna().sum()
+
+    }
