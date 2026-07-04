@@ -1,194 +1,121 @@
 """
 =========================================================
-CUSTOMER SEGMENTATION
+EMOTION PROBABILITY
 =========================================================
 """
 
 import streamlit as st
 
-from modules.utils import (
-    require_session,
-    save_session,
-    download_csv
+from modules.emotion_probability import (
+    probability_table,
+    probability_bar_chart,
+    probability_pie_chart,
+    confidence_gauge,
+    top_emotion,
+    top_probability
 )
 
-from modules.clustering import (
-    customer_segmentation,
-    segment_summary,
-    cluster_profile,
-    dominant_emotion,
-    segment_statistics
-)
-
-from modules.visualization import (
-    segment_bar
-)
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 
 st.set_page_config(
-    page_title="Customer Segmentation",
-    page_icon="👥",
+    page_title="Emotion Probability",
+    page_icon="📈",
     layout="wide"
 )
 
-st.title("👥 Customer Segmentation")
+st.title("📈 Emotion Probability")
 
 st.markdown("---")
-prediction_df = require_session(
-    "prediction_df",
-    "Silakan lakukan Emotion Prediction terlebih dahulu."
+
+# =====================================================
+# INPUT TEXT
+# =====================================================
+
+text = st.text_area(
+    "Masukkan kalimat yang ingin diprediksi",
+    height=180,
+    placeholder="Contoh: Aplikasi Livin sangat membantu transaksi saya."
 )
+
+# =====================================================
+# BUTTON
+# =====================================================
+
 if st.button(
-    "🚀 Jalankan Customer Segmentation",
+    "🚀 Predict Emotion",
     use_container_width=True
 ):
 
-    with st.spinner("Melakukan clustering..."):
+    if text.strip() == "":
 
-        segmentation_df = customer_segmentation(
-            prediction_df
+        st.warning(
+            "Silakan masukkan teks terlebih dahulu."
         )
 
-        save_session(
-            "segmentation_df",
-            segmentation_df
+        st.stop()
+
+    # =================================================
+    # METRIC
+    # =================================================
+
+    col1, col2 = st.columns(2)
+
+    col1.metric(
+        "Predicted Emotion",
+        top_emotion(text)
+    )
+
+    col2.metric(
+        "Confidence",
+        f"{top_probability(text)} %"
+    )
+
+    st.markdown("---")
+
+    # =================================================
+    # TABLE
+    # =================================================
+
+    st.subheader("Probability Table")
+
+    st.dataframe(
+        probability_table(text),
+        use_container_width=True
+    )
+
+    st.markdown("---")
+
+    # =================================================
+    # CHART
+    # =================================================
+
+    left, right = st.columns(2)
+
+    with left:
+
+        st.plotly_chart(
+            probability_bar_chart(text),
+            use_container_width=True
         )
 
-    st.success(
-        "Customer Segmentation berhasil."
+    with right:
+
+        st.plotly_chart(
+            probability_pie_chart(text),
+            use_container_width=True
+        )
+
+    st.markdown("---")
+
+    # =================================================
+    # GAUGE
+    # =================================================
+
+    st.subheader("Confidence Score")
+
+    st.plotly_chart(
+        confidence_gauge(text),
+        use_container_width=True
     )
-    if "segmentation_df" not in st.session_state:
-
-    st.info(
-        "Klik tombol Jalankan Customer Segmentation."
-    )
-
-    st.stop()
-
-segmentation_df = st.session_state["segmentation_df"]
-stat = segment_statistics(
-    segmentation_df
-)
-
-c1,c2,c3 = st.columns(3)
-
-c1.metric(
-    "Total Customer",
-    stat["Total Customer"]
-)
-
-c2.metric(
-    "Total Segment",
-    stat["Total Segment"]
-)
-
-c3.metric(
-    "Dominant Segment",
-    stat["Dominant Segment"]
-)
-st.markdown("---")
-
-st.subheader("Segment Distribution")
-
-st.plotly_chart(
-
-    segment_bar(
-
-        segmentation_df
-
-    ),
-
-    use_container_width=True
-
-)
-st.markdown("---")
-
-st.subheader("Segment Summary")
-
-summary = segment_summary(
-    segmentation_df
-)
-
-st.dataframe(
-
-    summary,
-
-    use_container_width=True
-
-)
-st.markdown("---")
-
-st.subheader("Cluster Profile")
-
-profile = cluster_profile(
-    segmentation_df
-)
-
-st.dataframe(
-
-    profile,
-
-    use_container_width=True
-
-)
-st.markdown("---")
-
-st.subheader("Dominant Emotion")
-
-emotion = dominant_emotion(
-    segmentation_df
-)
-
-emotion_df = (
-    pd.DataFrame.from_dict(
-        emotion,
-        orient="index",
-        columns=["Dominant Emotion"]
-    )
-    .reset_index()
-)
-
-emotion_df.columns = [
-    "Customer Segment",
-    "Dominant Emotion"
-]
-
-st.dataframe(
-    emotion_df,
-    use_container_width=True
-)
-st.markdown("---")
-
-st.subheader("Segmentation Result")
-
-st.dataframe(
-
-    segmentation_df[
-        [
-            "content",
-            "emotion",
-            "Customer Segment"
-        ]
-    ],
-
-    use_container_width=True,
-
-    height=450
-
-)
-st.markdown("---")
-
-st.download_button(
-
-    "⬇ Download Segmentation",
-
-    download_csv(
-
-        segmentation_df
-
-    ),
-
-    "customer_segmentation.csv",
-
-    "text/csv"
-
-)
