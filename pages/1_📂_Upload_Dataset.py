@@ -1,20 +1,17 @@
 """
 =========================================================
-DATA UNDERSTANDING
+UPLOAD DATASET
 =========================================================
 """
 
 import streamlit as st
-import pandas as pd
-import plotly.express as px
 
 from modules.utils import (
-    require_session,
+    read_dataset,
+    save_session,
     dataset_info,
     dataframe_info,
-    detect_text_column,
-    detect_rating_column,
-    detect_date_column
+    download_csv
 )
 
 # =====================================================
@@ -22,319 +19,125 @@ from modules.utils import (
 # =====================================================
 
 st.set_page_config(
-    page_title="Data Understanding",
-    page_icon="📊",
+    page_title="Upload Dataset",
+    page_icon="📂",
     layout="wide"
 )
 
-st.title("📊 Data Understanding")
+st.title("📂 Upload Dataset")
 st.markdown("---")
+
+st.info("""
+Silakan upload dataset hasil scraping Google Play.
+
+**Format yang didukung:**
+- CSV (.csv)
+- Excel (.xlsx)
+""")
+
+# =====================================================
+# FILE UPLOADER
+# =====================================================
+
+uploaded_file = st.file_uploader(
+    "Pilih Dataset",
+    type=["csv", "xlsx"]
+)
 
 # =====================================================
 # LOAD DATASET
 # =====================================================
 
-df = require_session(
-    "raw_df",
-    "Silakan upload dataset terlebih dahulu."
-)
+if uploaded_file is not None:
 
-# =====================================================
-# DATASET INFORMATION
-# =====================================================
+    try:
 
-info = dataset_info(df)
+        with st.spinner("Membaca dataset..."):
 
-c1, c2, c3, c4 = st.columns(4)
+            df = read_dataset(uploaded_file)
 
-c1.metric("📄 Jumlah Review", info["rows"])
-c2.metric("📑 Jumlah Kolom", info["columns"])
-c3.metric("❗ Missing Value", info["missing"])
-c4.metric("📌 Duplicate", info["duplicate"])
+            save_session(
+                "raw_df",
+                df
+            )
 
-st.markdown("---")
+        st.success("✅ Dataset berhasil diupload.")
 
-# =====================================================
-# PREVIEW DATASET
-# =====================================================
+    except Exception as e:
 
-st.subheader("📄 Preview Dataset")
+        st.error(f"Gagal membaca dataset.\n\n{e}")
 
-st.dataframe(
-    df.head(20),
-    use_container_width=True,
-    height=400
-)
+        st.stop()
 
-st.markdown("---")
+    # =====================================================
+    # METRIC
+    # =====================================================
 
-# =====================================================
-# DATAFRAME INFORMATION
-# =====================================================
+    info = dataset_info(df)
 
-st.subheader("📋 Informasi Dataset")
+    c1, c2, c3, c4 = st.columns(4)
 
-st.dataframe(
-    dataframe_info(df),
-    use_container_width=True
-)
+    c1.metric(
+        "📄 Jumlah Review",
+        info["rows"]
+    )
 
-# =====================================================
-# STATISTIK NUMERIK
-# =====================================================
+    c2.metric(
+        "📑 Jumlah Kolom",
+        info["columns"]
+    )
 
-numeric = df.select_dtypes(include=["number"])
+    c3.metric(
+        "❗ Missing Value",
+        info["missing"]
+    )
 
-if not numeric.empty:
+    c4.metric(
+        "📌 Duplicate",
+        info["duplicate"]
+    )
 
     st.markdown("---")
 
-    st.subheader("📈 Statistik Numerik")
+    # =====================================================
+    # PREVIEW DATASET
+    # =====================================================
+
+    st.subheader("📄 Preview Dataset")
 
     st.dataframe(
-        numeric.describe().T,
-        use_container_width=True
+        df.head(20),
+        use_container_width=True,
+        height=450
     )
-
-# =====================================================
-# DISTRIBUSI RATING
-# =====================================================
-
-rating_col = detect_rating_column(df)
-
-if rating_col:
 
     st.markdown("---")
 
-    st.subheader("⭐ Distribusi Rating")
-
-    rating = (
-        df[rating_col]
-        .value_counts()
-        .sort_index()
-        .reset_index()
-    )
-
-    rating.columns = [
-        "Rating",
-        "Jumlah"
-    ]
-
-    fig = px.bar(
-        rating,
-        x="Rating",
-        y="Jumlah",
-        text="Jumlah",
-        color="Rating"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-# =====================================================
-# PANJANG REVIEW
-# =====================================================
-
-text_col = detect_text_column(df)
-
-if text_col:
-
-    st.markdown("---")
-
-    st.subheader("📝 Distribusi Panjang Review")
-
-    temp = df.copy()
-
-    temp["Jumlah Kata"] = (
-
-        temp[text_col]
-
-        .fillna("")
-
-        .astype(str)
-
-        .str.split()
-
-        .str.len()
-
-    )
-
-    fig = px.histogram(
-
-        temp,
-
-        x="Jumlah Kata",
-
-        nbins=30
-
-    )
-
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
-
-# =====================================================
-# REVIEW PER TANGGAL
-# =====================================================
-
-date_col = detect_date_column(df)
-
-if date_col:
-
-    st.markdown("---")
-
-    st.subheader("📅 Review per Tanggal")
-
-    temp = df.copy()
-
-    temp[date_col] = pd.to_datetime(
-
-        temp[date_col],
-
-        errors="coerce"
-
-    )
-
-    review = (
-
-        temp
-
-        .groupby(date_col)
-
-        .size()
-
-        .reset_index(name="Jumlah")
-
-    )
-
-    fig = px.line(
-
-        review,
-
-        x=date_col,
-
-        y="Jumlah",
-
-        markers=True
-
-    )
-
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
-
-# =====================================================
-# MISSING VALUE
-# =====================================================
-
-st.markdown("---")
-
-st.subheader("❗ Missing Value")
-
-missing = (
-
-    df.isnull()
-
-    .sum()
-
-    .reset_index()
-
-)
-
-missing.columns = [
-
-    "Kolom",
-
-    "Missing"
-
-]
-
-left, right = st.columns([1,2])
-
-with left:
+    # =====================================================
+    # INFORMASI DATASET
+    # =====================================================
+
+    st.subheader("📋 Informasi Dataset")
 
     st.dataframe(
-
-        missing,
-
+        dataframe_info(df),
         use_container_width=True
-
     )
 
-with right:
+    st.markdown("---")
 
-    fig = px.bar(
+    # =====================================================
+    # DOWNLOAD
+    # =====================================================
 
-        missing,
-
-        x="Kolom",
-
-        y="Missing",
-
-        text="Missing",
-
-        color="Missing"
-
-    )
-
-    st.plotly_chart(
-
-        fig,
-
+    st.download_button(
+        "⬇ Download Dataset",
+        data=download_csv(df),
+        file_name="uploaded_dataset.csv",
+        mime="text/csv",
         use_container_width=True
-
-    )
-
-# =====================================================
-# DUPLICATE
-# =====================================================
-
-st.markdown("---")
-
-st.subheader("📌 Duplicate Data")
-
-duplicate = int(df.duplicated().sum())
-
-if duplicate > 0:
-
-    st.warning(
-
-        f"Ditemukan {duplicate} data duplikat."
-
     )
 
 else:
 
-    st.success(
-
-        "Tidak ditemukan data duplikat."
-
-    )
-
-# =====================================================
-# SAMPLE REVIEW
-# =====================================================
-
-if text_col:
-
-    st.markdown("---")
-
-    st.subheader("💬 Contoh Review")
-
-    st.dataframe(
-
-        df[[text_col]].head(10),
-
-        use_container_width=True
-
-    )
+    st.warning("Silakan upload dataset terlebih dahulu.")
