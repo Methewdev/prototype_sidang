@@ -66,6 +66,10 @@ with st.sidebar:
         "🚀 Ambil Review",
         use_container_width=True
     )
+    df = get_reviews(
+    app_name=app_name,
+    count=count
+)
 
 # =====================================================
 # SCRAPING
