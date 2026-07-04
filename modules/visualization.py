@@ -347,3 +347,93 @@ def top_word_chart(df):
     )
 
     return fig
+# =====================================================
+# EMOTION BAR
+# =====================================================
+
+def emotion_bar(df):
+
+    if "emotion" not in df.columns:
+        return go.Figure()
+
+    emotion = (
+        df["emotion"]
+        .value_counts()
+        .reset_index()
+    )
+
+    emotion.columns = [
+        "Emotion",
+        "Total"
+    ]
+
+    fig = px.bar(
+        emotion,
+        x="Emotion",
+        y="Total",
+        text="Total",
+        color="Emotion"
+    )
+
+    fig.update_layout(
+        title="Emotion Distribution",
+        height=450
+    )
+
+    return fig
+    # =====================================================
+# EMOTION PIE
+# =====================================================
+
+def emotion_pie(df):
+
+    if "emotion" not in df.columns:
+        return go.Figure()
+
+    emotion = (
+        df["emotion"]
+        .value_counts()
+        .reset_index()
+    )
+
+    emotion.columns = [
+        "Emotion",
+        "Total"
+    ]
+
+    fig = px.pie(
+        emotion,
+        names="Emotion",
+        values="Total",
+        hole=0.45
+    )
+
+    fig.update_layout(
+        title="Emotion Distribution",
+        height=450
+    )
+
+    return fig
+    # =====================================================
+# CONFIDENCE HISTOGRAM
+# =====================================================
+
+def confidence_histogram(df):
+
+    if "confidence" not in df.columns:
+        return go.Figure()
+
+    fig = px.histogram(
+        df,
+        x="confidence",
+        nbins=20
+    )
+
+    fig.update_layout(
+        title="Confidence Distribution",
+        xaxis_title="Confidence",
+        yaxis_title="Total Review",
+        height=450
+    )
+
+    return fig
