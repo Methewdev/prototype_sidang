@@ -95,9 +95,9 @@ def normalization(text):
 
     words = text.split()
 
-    words = [
+    normalized = [
 
-        SLANG.get(
+        SLANG_DICT.get(
 
             word,
 
@@ -109,7 +109,7 @@ def normalization(text):
 
     ]
 
-    return " ".join(words)
+    return " ".join(normalized)
 
 # =====================================================
 # TOKENIZER
