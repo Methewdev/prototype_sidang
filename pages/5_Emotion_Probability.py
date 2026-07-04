@@ -87,43 +87,68 @@ st.markdown("---")
 
 
 # =====================================================
-# TABLE
+# DISPLAY COLUMN
 # =====================================================
 
-st.subheader("Emotion Probability")
+# Tentukan kolom review
+if "review" in probability_df.columns:
 
-display = probability_df[
+    text_column = "review"
 
-    [
-        "content",
-        
-        "emotion",
+elif "content" in probability_df.columns:
 
-        "confidence",
+    text_column = "content"
 
-        "Frustrasi",
+else:
+
+    text_column = probability_df.columns[0]
+
+# Kolom probabilitas yang tersedia
+emotion_columns = [
+
+    col
+
+    for col in [
+
+        "Senang",
 
         "Netral",
 
-        "Sedih",
+        "Marah",
 
-        "Senang"
+        "Frustrasi"
 
     ]
 
+    if col in probability_df.columns
+
 ]
+
+display_columns = [
+
+    text_column,
+
+    "emotion",
+
+    "confidence",
+
+    *emotion_columns
+
+]
+
+st.subheader("Emotion Probability")
 
 st.dataframe(
 
-    display,
+    probability_df[display_columns],
 
     use_container_width=True,
 
-    height=500
+    height=500,
+
+    hide_index=True
 
 )
-
-st.markdown("---")
 
 # =====================================================
 # DOWNLOAD
