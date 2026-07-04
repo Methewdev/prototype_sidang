@@ -177,14 +177,16 @@ if "Retention Strategy" in retention_df.columns:
 
     st.subheader("Retention Recommendation")
 
-    cols = [
-        c for c in [
-            "Customer Type",
-            "Risk Level",
-            "Retention Strategy"
-        ]
-        if c in retention_df.columns
+   cols = [
+    c for c in [
+        "final_text",
+        "emotion",
+        "Customer Segment",
+        "Risk Level",
+        "Retention Strategy"
     ]
+    if c in retention_df.columns
+]
 
     st.dataframe(
         retention_df[cols].drop_duplicates(),
@@ -204,6 +206,8 @@ display_columns = [
     col for col in [
 
         "content",
+
+        "final_text",
 
         "emotion",
 
