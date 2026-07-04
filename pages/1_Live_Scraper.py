@@ -1,218 +1,185 @@
 """
 =========================================================
-GOOGLE PLAY REVIEW SCRAPER
-=========================================================
-Scraper Module
+LIVE GOOGLE PLAY SCRAPER
 =========================================================
 """
 
-from google_play_scraper import reviews, Sort
+import streamlit as st
 import pandas as pd
 
+from modules.scraper import (
+    APP_MAPPING,
+    get_reviews,
+    dataset_info,
+    export_csv
+)
 
 # =====================================================
-# APP MAPPING
+# PAGE CONFIG
 # =====================================================
 
-APP_MAPPING = {
-    "Livin' by Mandiri": "id.bmri.livin",
-   
-}
+st.set_page_config(
+    page_title="Live Scraper",
+    page_icon="📥",
+    layout="wide"
+)
 
 # =====================================================
-# SCRAPE REVIEWS
+# SESSION STATE
 # =====================================================
 
-def get_reviews(
-    app_name: str,
-    count: int = 500,
-    country: str = "id",
-    language: str = "id",
-    sort: str = "newest"
-):
-    """
-    Mengambil review dari Google Play Store.
+if "raw_data" not in st.session_state:
+    st.session_state.raw_data = pd.DataFrame()
 
-    Parameters
-    ----------
-    app_name : str
-        Nama aplikasi sesuai APP_MAPPING
+# =====================================================
+# TITLE
+# =====================================================
 
-    count : int
-        Jumlah review
+st.title("📥 Live Google Play Review Scraper")
+st.caption(
+    "Ambil review terbaru langsung dari Google Play Store "
+    "tanpa perlu upload dataset."
+)
 
-    country : str
-        Negara
+# =====================================================
+# SIDEBAR
+# =====================================================
 
-    language : str
-        Bahasa
+with st.sidebar:
 
-    sort : str
-        newest
-        relevant
+    st.header("⚙️ Scraper Settings")
 
-    Returns
-    -------
-    DataFrame
-    """
-
-    if app_name not in APP_MAPPING:
-        raise ValueError(f"{app_name} tidak tersedia.")
-
-    app_id = APP_MAPPING[app_name]
-
-    sort_option = (
-        Sort.NEWEST if sort.lower() == "newest"
-        else Sort.MOST_RELEVANT
+    app_name = st.selectbox(
+        "Pilih Aplikasi",
+        list(APP_MAPPING.keys())
     )
 
-    result, _ = reviews(
-        app_id,
-        lang=language,
-        country=country,
-        sort=sort_option,
-        count=count
+    count = st.slider(
+        "Jumlah Review",
+        min_value=100,
+        max_value=5000,
+        value=500,
+        step=100
     )
 
-    df = pd.DataFrame(result)
+    sort = st.selectbox(
+        "Urutan Review",
+        [
+            "newest",
+            "relevant"
+        ]
+    )
 
-    return clean_reviews(df)
+    language = st.selectbox(
+        "Bahasa",
+        [
+            "id",
+            "en"
+        ]
+    )
 
+    country = st.selectbox(
+        "Negara",
+        [
+            "id",
+            "us"
+        ]
+    )
 
-# =====================================================
-# CLEAN DATAFRAME
-# =====================================================
-
-def clean_reviews(df: pd.DataFrame):
-
-    columns = {
-        
-        "userName": "username",
-        "score": "rating",
-        "content": "review",
-        "at": "date",
-    }
-
-    available = {
-        k: v
-        for k, v in columns.items()
-        if k in df.columns
-    }
-
-    df = df.rename(columns=available)
-
-    keep_columns = list(available.values())
-
-    df = df[keep_columns].copy()
-
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"])
-
-    if "reply_date" in df.columns:
-        df["reply_date"] = pd.to_datetime(df["reply_date"])
-
-    df = df.drop_duplicates(subset="review")
-
-    df = df.reset_index(drop=True)
-
-    return df
-
+    scrape_button = st.button(
+        "🚀 Ambil Review",
+        use_container_width=True
+    )
 
 # =====================================================
-# FILTER DATE
+# SCRAPING
 # =====================================================
 
-def filter_date(
-    df: pd.DataFrame,
-    start_date=None,
-    end_date=None
-):
+if scrape_button:
 
-    if "date" not in df.columns:
-        return df
+    with st.spinner("Mengambil data dari Google Play Store..."):
 
-    if start_date is not None:
-        df = df[df["date"] >= pd.to_datetime(start_date)]
+        try:
 
-    if end_date is not None:
-        df = df[df["date"] <= pd.to_datetime(end_date)]
+            df = get_reviews(
+                app_name=app_name,
+                count=count,
+                country=country,
+                language=language,
+                sort=sort
+            )
 
-    return df.reset_index(drop=True)
+            st.session_state.raw_data = df
 
+            st.success(
+                f"✅ {len(df)} review berhasil diambil."
+            )
 
-# =====================================================
-# FILTER RATING
-# =====================================================
+        except Exception as e:
 
-def filter_rating(
-    df: pd.DataFrame,
-    rating=None
-):
-
-    if rating is None:
-        return df
-
-    return df[df["rating"] == rating].reset_index(drop=True)
-
+            st.error(str(e))
 
 # =====================================================
-# FILTER VERSION
+# SHOW DATA
 # =====================================================
 
-def filter_version(
-    df: pd.DataFrame,
-    version=None
-):
+if not st.session_state.raw_data.empty:
 
-    if version is None:
-        return df
+    df = st.session_state.raw_data
 
-    return df[df["app_version"] == version].reset_index(drop=True)
+    st.divider()
 
+    st.subheader("📊 Dataset Information")
 
-# =====================================================
-# SEARCH KEYWORD
-# =====================================================
+    info = dataset_info(df)
 
-def search_review(
-    df: pd.DataFrame,
-    keyword: str
-):
+    c1, c2, c3, c4, c5 = st.columns(5)
 
-    if keyword == "":
-        return df
+    c1.metric(
+        "Total Review",
+        info["Total Review"]
+    )
 
-    return df[
-        df["review"].str.contains(
-            keyword,
-            case=False,
-            na=False
-        )
-    ].reset_index(drop=True)
+    c2.metric(
+        "Average Rating",
+        info["Average Rating"]
+    )
 
+    c3.metric(
+        "Latest Review",
+        info["Latest Review"].date()
+    )
 
-# =====================================================
-# DATASET INFO
-# =====================================================
+    c4.metric(
+        "Oldest Review",
+        info["Oldest Review"].date()
+    )
 
-def dataset_info(df):
+    c5.metric(
+        "App Version",
+        info["Total Version"]
+    )
 
-    info = {
-        "Total Review": len(df),
-        "Average Rating": round(df["rating"].mean(), 2),
-        "Latest Review": df["date"].max(),
-        "Oldest Review": df["date"].min(),
-        "Total Version": df["app_version"].nunique()
-        if "app_version" in df.columns else "-"
-    }
+    st.divider()
 
-    return info
+    st.subheader("📄 Preview Review")
 
+    st.dataframe(
+        df,
+        width="stretch",
+        hide_index=True
+    )
 
-# =====================================================
-# EXPORT CSV
-# =====================================================
+    st.download_button(
+        "⬇️ Download CSV",
+        data=export_csv(df),
+        file_name="google_play_reviews.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
-def export_csv(df: pd.DataFrame):
+else:
 
-    return df.to_csv(index=False).encode("utf-8")
+    st.info(
+        "Silakan lakukan scraping terlebih dahulu."
+    )
