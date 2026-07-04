@@ -13,7 +13,7 @@ from modules.utils import (
     download_csv
 )
 
-from modules.clustering import (
+from modules.segmentation import (
     customer_segmentation,
     segment_summary,
     cluster_profile,
