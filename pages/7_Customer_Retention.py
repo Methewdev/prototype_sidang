@@ -119,21 +119,21 @@ st.markdown("---")
 st.subheader("Retention Recommendation")
 
 display_columns = [
-    "content",
-    "emotion",
-    "Customer Type",
-    "Risk Level",
-    "Retention Strategy"
-]
-
-display_columns = [
-    c for c in display_columns
-    if c in retention_df.columns
+    col
+    for col in [
+        "content",
+        "final_text",
+        "emotion",
+        "Risk Level",
+        "Retention Strategy"
+    ]
+    if col in retention_df.columns
 ]
 
 st.dataframe(
     retention_df[display_columns],
     use_container_width=True,
+    hide_index=True,
     height=500
 )
 
