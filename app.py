@@ -58,7 +58,7 @@ Google Play **Livin' by Mandiri** menggunakan model
 
 Seluruh proses analisis dilakukan secara bertahap mulai dari:
 
-- 📂 Upload Dataset
+- 📂 Input Datase / Scrapper Dataset
 - 📊 Data Understanding
 - 🧹 Text Preprocessing
 - 🤖 Emotion Prediction
