@@ -15,7 +15,7 @@ import pandas as pd
 # =====================================================
 
 APP_MAPPING = {
-    "BRIMO": "id.co.bri.brimo",
+    "Livin By Mandiri": "id.bmri.livin",
    
 }
 
