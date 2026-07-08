@@ -1,8 +1,8 @@
-"""
+
 =========================================================
 MODEL EVALUATION
 =========================================================
-"""
+
 
 import json
 import pandas as pd
@@ -29,11 +29,11 @@ MODEL_REPOS = {
         "envidevelopment/livin-emotion-deberta"
 
 }
-"""
+
 =========================================================
 LOAD METRICS
 =========================================================
-"""
+
 
 def load_metrics(repo):
 
@@ -50,11 +50,11 @@ def load_metrics(repo):
         metric = json.load(f)
 
     return metric
-"""
+
 =========================================================
 LOAD CLASSIFICATION REPORT
 =========================================================
-"""
+
 
 def load_report(repo):
 
@@ -67,11 +67,11 @@ def load_report(repo):
     )
 
     return pd.read_csv(file)
-  """
+
 =========================================================
 LOAD CONFUSION MATRIX
 =========================================================
-"""
+
 
 def load_confusion_matrix(repo):
 
@@ -87,11 +87,11 @@ def load_confusion_matrix(repo):
         file,
         index_col=0
     )
-"""
+
 =========================================================
 LOAD TRAINING HISTORY
 =========================================================
-"""
+
 
 def load_history(repo):
 
@@ -104,11 +104,11 @@ def load_history(repo):
     )
 
     return pd.read_csv(file)
-"""
+
 =========================================================
 ALL METRICS
 =========================================================
-"""
+
 
 def get_all_metrics():
 
@@ -135,11 +135,11 @@ def get_all_metrics():
         })
 
     return pd.DataFrame(rows)
-"""
+
 =========================================================
 BEST MODEL
 =========================================================
-"""
+
 
 def best_model(df):
 
@@ -150,11 +150,11 @@ def best_model(df):
         ascending=False
 
     ).iloc[0]
-"""
+
 =========================================================
 BAR CHART
 =========================================================
-"""
+
 
 def metric_bar(df,column):
 
@@ -181,11 +181,11 @@ def metric_bar(df,column):
     )
 
     return fig
-"""
+
 =========================================================
 RADAR CHART
 =========================================================
-"""
+
 
 def radar_chart(df):
 
@@ -250,11 +250,11 @@ def radar_chart(df):
     )
 
     return fig
-"""
+
 =========================================================
 CONFUSION MATRIX
 =========================================================
-"""
+
 
 def plot_confusion_matrix(df,title):
 
@@ -279,11 +279,11 @@ def plot_confusion_matrix(df,title):
     )
 
     return fig
-"""
+
 =========================================================
 TRAINING HISTORY
 =========================================================
-"""
+
 
 def training_history_chart(df):
 
