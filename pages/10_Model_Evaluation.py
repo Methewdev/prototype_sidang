@@ -1,6 +1,26 @@
+"""
+=========================================================
+MODEL EVALUATION
+=========================================================
+"""
+
 import streamlit as st
-import pandas as pd
-import plotly.express as px
+
+from modules.utils import (
+    require_session
+)
+
+from modules.model_evaluation import (
+    get_all_metrics,
+    best_model,
+    metric_bar,
+    radar_chart,
+    MODEL_REPOS
+)
+
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 
 st.set_page_config(
     page_title="Model Evaluation",
@@ -8,53 +28,250 @@ st.set_page_config(
     layout="wide"
 )
 
+require_session()
+
+# =====================================================
+# TITLE
+# =====================================================
+
 st.title("🏆 Model Evaluation")
 
-# Data hasil evaluasi
-df = pd.DataFrame({
-    "Model": ["IndoBERT", "mBERT", "DeBERTa"],
-    "Accuracy": [86.43, 84.78, 83.15],
-    "Precision": [86.85, 84.92, 83.42],
-    "Recall": [86.43, 84.78, 83.15],
-    "F1 Score": [86.46, 84.81, 83.20]
-})
+st.markdown(
+"""
+Perbandingan performa tiga model Transformer
+yang digunakan pada penelitian.
 
-st.subheader("Performance Comparison")
-st.dataframe(df, use_container_width=True)
-
-col1, col2 = st.columns(2)
-
-with col1:
-    fig = px.bar(
-        df,
-        x="Model",
-        y="Accuracy",
-        color="Model",
-        text="Accuracy",
-        title="Accuracy Comparison"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-with col2:
-    fig = px.bar(
-        df,
-        x="Model",
-        y="F1 Score",
-        color="Model",
-        text="F1 Score",
-        title="F1 Score Comparison"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-st.subheader("Evaluation Metrics")
-st.table(df)
-
-best = df.sort_values("F1 Score", ascending=False).iloc[0]
-
-st.success(
-    f"""
-Model terbaik adalah **{best['Model']}**
-dengan Accuracy **{best['Accuracy']:.2f}%**
-dan F1 Score **{best['F1 Score']:.2f}%**.
+- IndoBERT
+- mBERT
+- DeBERTa
 """
 )
+
+# =====================================================
+# LOAD DATA
+# =====================================================
+
+with st.spinner("Loading evaluation metrics..."):
+
+    metrics_df = get_all_metrics()
+
+best = best_model(metrics_df)
+
+# =====================================================
+# BEST MODEL
+# =====================================================
+
+st.success(
+
+f"""
+### 🏆 Best Model
+
+Model terbaik berdasarkan **F1 Score**
+
+**{best['Model']}**
+
+Accuracy :
+
+**{best['Accuracy']:.2%}**
+
+F1 Score :
+
+**{best['F1 Score']:.2%}**
+"""
+)
+
+# =====================================================
+# METRIC CARD
+# =====================================================
+
+st.subheader("📊 Performance Metrics")
+
+col1,col2,col3,col4,col5 = st.columns(5)
+
+with col1:
+
+    st.metric(
+
+        "Accuracy",
+
+        f"{best['Accuracy']:.2%}"
+
+    )
+
+with col2:
+
+    st.metric(
+
+        "Precision",
+
+        f"{best['Precision']:.2%}"
+
+    )
+
+with col3:
+
+    st.metric(
+
+        "Recall",
+
+        f"{best['Recall']:.2%}"
+
+    )
+
+with col4:
+
+    st.metric(
+
+        "F1 Score",
+
+        f"{best['F1 Score']:.2%}"
+
+    )
+
+with col5:
+
+    st.metric(
+
+        "Loss",
+
+        f"{best['Loss']:.4f}"
+
+    )
+
+st.divider()
+
+# =====================================================
+# PERFORMANCE TABLE
+# =====================================================
+
+st.subheader("📋 Model Comparison")
+
+show_df = metrics_df.copy()
+
+show_df["Accuracy"] = show_df["Accuracy"].map(
+    lambda x:f"{x:.2%}"
+)
+
+show_df["Precision"] = show_df["Precision"].map(
+    lambda x:f"{x:.2%}"
+)
+
+show_df["Recall"] = show_df["Recall"].map(
+    lambda x:f"{x:.2%}"
+)
+
+show_df["F1 Score"] = show_df["F1 Score"].map(
+    lambda x:f"{x:.2%}"
+)
+
+show_df["Loss"] = show_df["Loss"].map(
+    lambda x:f"{x:.4f}"
+)
+
+st.dataframe(
+
+    show_df,
+
+    use_container_width=True,
+
+    hide_index=True
+
+)
+
+st.divider()
+
+# =====================================================
+# COMPARISON CHART
+# =====================================================
+
+st.subheader("📈 Model Comparison Chart")
+
+left,right = st.columns(2)
+
+with left:
+
+    st.plotly_chart(
+
+        metric_bar(
+
+            metrics_df,
+
+            "Accuracy"
+
+        ),
+
+        use_container_width=True
+
+    )
+
+with right:
+
+    st.plotly_chart(
+
+        metric_bar(
+
+            metrics_df,
+
+            "F1 Score"
+
+        ),
+
+        use_container_width=True
+
+    )
+
+left,right = st.columns(2)
+
+with left:
+
+    st.plotly_chart(
+
+        metric_bar(
+
+            metrics_df,
+
+            "Precision"
+
+        ),
+
+        use_container_width=True
+
+    )
+
+with right:
+
+    st.plotly_chart(
+
+        metric_bar(
+
+            metrics_df,
+
+            "Recall"
+
+        ),
+
+        use_container_width=True
+
+    )
+
+st.divider()
+
+# =====================================================
+# RADAR CHART
+# =====================================================
+
+st.subheader("📡 Overall Performance")
+
+st.plotly_chart(
+
+    radar_chart(
+
+        metrics_df
+
+    ),
+
+    use_container_width=True
+
+)
+
+st.divider()
