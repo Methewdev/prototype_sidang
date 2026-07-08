@@ -14,12 +14,7 @@ from modules.model_evaluation import (
     best_model,
     ranking_model,
     metric_bar,
-    radar_chart,
-    load_report,
-    load_confusion_matrix,
-    load_history,
-    plot_confusion_matrix,
-    training_history_chart
+    radar_chart
 )
 
 # =====================================================
@@ -79,20 +74,18 @@ best = best_model(metrics_df)
 # =====================================================
 
 st.success(
-    f"""
+f"""
 🏆 **Best Model**
 
-Model : **{best['Model']}**
+**Model :** {best['Model']}
 
-Accuracy : **{best['Accuracy']:.2%}**
+**Accuracy :** {best['Accuracy']:.2%}
 
-Precision : **{best['Precision']:.2%}**
+**Precision :** {best['Precision']:.2%}
 
-Recall : **{best['Recall']:.2%}**
+**Recall :** {best['Recall']:.2%}
 
-F1 Score : **{best['F1 Score']:.2%}**
-
-Loss : **{best['Loss']:.4f}**
+**F1 Score :** {best['F1 Score']:.2%}
 """
 )
 
@@ -102,7 +95,7 @@ Loss : **{best['Loss']:.4f}**
 
 st.subheader("📊 Performance Metrics")
 
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3, c4 = st.columns(4)
 
 c1.metric(
     "Accuracy",
@@ -122,11 +115,6 @@ c3.metric(
 c4.metric(
     "F1 Score",
     f"{best['F1 Score']:.2%}"
-)
-
-c5.metric(
-    "Loss",
-    f"{best['Loss']:.4f}"
 )
 
 st.divider()
@@ -152,16 +140,8 @@ for col in [
 ]:
 
     table[col] = table[col].apply(
-
         lambda x: f"{x:.2%}"
-
     )
-
-table["Loss"] = table["Loss"].apply(
-
-    lambda x: f"{x:.4f}"
-
-)
 
 st.dataframe(
 
@@ -258,7 +238,7 @@ ranking_df = ranking_model(metrics_df)
 
 ranking_show = ranking_df.copy()
 
-percentage_columns = [
+for col in [
 
     "Accuracy",
 
@@ -268,21 +248,11 @@ percentage_columns = [
 
     "F1 Score"
 
-]
-
-for col in percentage_columns:
+]:
 
     ranking_show[col] = ranking_show[col].apply(
-
         lambda x: f"{x:.2%}"
-
     )
-
-ranking_show["Loss"] = ranking_show["Loss"].apply(
-
-    lambda x: f"{x:.4f}"
-
-)
 
 st.dataframe(
 
@@ -298,85 +268,12 @@ st.info(
 """
 Model diurutkan berdasarkan **Weighted F1 Score**.
 
-Semakin tinggi nilai F1 Score,
-semakin baik performa model dalam
-mengklasifikasikan emosi pengguna.
+Semakin tinggi nilai **F1 Score**, semakin baik kemampuan model
+dalam mengklasifikasikan emosi pengguna.
 """
 )
 
 st.divider()
-# =====================================================
-# DETAIL EVALUATION
-# =====================================================
-
-st.subheader("📑 Detail Evaluation")
-
-tabs = st.tabs(list(MODEL_REPOS.keys()))
-
-for tab, (model_name, repo) in zip(
-    tabs,
-    MODEL_REPOS.items()
-):
-
-    with tab:
-
-        st.markdown(f"## 🤖 {model_name}")
-
-        # ============================================
-        # CLASSIFICATION REPORT
-        # ============================================
-
-        st.markdown("### 📄 Classification Report")
-
-        try:
-
-            report = load_report(repo)
-
-            st.dataframe(
-                report,
-                use_container_width=True,
-                hide_index=True
-            )
-
-        except Exception as e:
-
-            st.warning(
-                f"Classification Report tidak ditemukan.\n\n{e}"
-            )
-
-        st.divider()
-
-        # ============================================
-        # CONFUSION MATRIX
-        # ============================================
-
-        st.markdown("### 🔥 Confusion Matrix")
-
-        try:
-
-            cm = load_confusion_matrix(repo)
-
-            st.plotly_chart(
-
-                plot_confusion_matrix(
-
-                    cm,
-
-                    f"{model_name} Confusion Matrix"
-
-                ),
-
-                use_container_width=True
-
-            )
-
-        except Exception as e:
-
-            st.warning(
-                f"Confusion Matrix tidak ditemukan.\n\n{e}"
-            )
-
-        st.divider()
 
         # ============================================
         # TRAINING HISTORY
