@@ -1,8 +1,7 @@
 
-=========================================================
-MODEL EVALUATION
-=========================================================
-
+# =========================================================
+MODEL EVALUATION MODULE
+# =========================================================
 
 import json
 import pandas as pd
@@ -12,28 +11,25 @@ from huggingface_hub import hf_hub_download
 import plotly.express as px
 import plotly.graph_objects as go
 
-=========================================================
-MODEL REPOSITORY
-=========================================================
 
+# =====================================================
+# HUGGINGFACE MODEL REPOSITORY
+# =====================================================
 
 MODEL_REPOS = {
 
-    "IndoBERT":
-        "envidevelopment/livin-emotion-indobert",
+    "IndoBERT": "envidevelopment/livin-emotion-indobert",
 
-    "mBERT":
-        "envidevelopment/livin-emotion-mbert",
+    "mBERT": "envidevelopment/livin-emotion-mbert",
 
-    "DeBERTa":
-        "envidevelopment/livin-emotion-deberta"
+    "DeBERTa": "envidevelopment/livin-emotion-deberta"
 
 }
 
-=========================================================
-LOAD METRICS
-=========================================================
 
+# =====================================================
+# LOAD METRICS
+# =====================================================
 
 def load_metrics(repo):
 
@@ -45,16 +41,16 @@ def load_metrics(repo):
 
     )
 
-    with open(file,"r") as f:
+    with open(file, "r") as f:
 
-        metric = json.load(f)
+        metrics = json.load(f)
 
-    return metric
+    return metrics
 
-=========================================================
-LOAD CLASSIFICATION REPORT
-=========================================================
 
+# =====================================================
+# LOAD CLASSIFICATION REPORT
+# =====================================================
 
 def load_report(repo):
 
@@ -68,10 +64,10 @@ def load_report(repo):
 
     return pd.read_csv(file)
 
-=========================================================
-LOAD CONFUSION MATRIX
-=========================================================
 
+# =====================================================
+# LOAD CONFUSION MATRIX
+# =====================================================
 
 def load_confusion_matrix(repo):
 
@@ -84,14 +80,17 @@ def load_confusion_matrix(repo):
     )
 
     return pd.read_csv(
+
         file,
+
         index_col=0
+
     )
 
-=========================================================
-LOAD TRAINING HISTORY
-=========================================================
 
+# =====================================================
+# LOAD TRAINING HISTORY
+# =====================================================
 
 def load_history(repo):
 
@@ -105,58 +104,74 @@ def load_history(repo):
 
     return pd.read_csv(file)
 
-=========================================================
-ALL METRICS
-=========================================================
 
+# =====================================================
+# LOAD ALL METRICS
+# =====================================================
 
 def get_all_metrics():
 
     rows = []
 
-    for model,repo in MODEL_REPOS.items():
+    for model_name, repo in MODEL_REPOS.items():
 
         metric = load_metrics(repo)
 
         rows.append({
 
-            "Model":model,
+            "Model": model_name,
 
-            "Accuracy":metric["accuracy"],
+            "Accuracy": metric.get("accuracy", 0),
 
-            "Precision":metric["precision"],
+            "Precision": metric.get("precision", 0),
 
-            "Recall":metric["recall"],
+            "Recall": metric.get("recall", 0),
 
-            "F1 Score":metric["f1_score"],
+            "F1 Score": metric.get("f1_score", 0),
 
-            "Loss":metric["loss"]
+            "Loss": metric.get("loss", 0)
 
         })
 
     return pd.DataFrame(rows)
-
-=========================================================
-BEST MODEL
-=========================================================
-
+    # =====================================================
+# BEST MODEL
+# =====================================================
 
 def best_model(df):
 
+    if df.empty:
+        return None
+
     return df.sort_values(
-
-        "F1 Score",
-
+        by="F1 Score",
         ascending=False
-
     ).iloc[0]
 
-=========================================================
-BAR CHART
-=========================================================
+
+# =====================================================
+# MODEL RANKING
+# =====================================================
+
+def ranking_model(df):
+
+    ranking = df.copy()
+
+    ranking = ranking.sort_values(
+        by="F1 Score",
+        ascending=False
+    )
+
+    ranking["Rank"] = range(1, len(ranking) + 1)
+
+    return ranking
 
 
-def metric_bar(df,column):
+# =====================================================
+# BAR CHART
+# =====================================================
+
+def metric_bar(df, metric):
 
     fig = px.bar(
 
@@ -164,32 +179,97 @@ def metric_bar(df,column):
 
         x="Model",
 
-        y=column,
+        y=metric,
 
         color="Model",
 
-        text=df[column].round(4)
+        text=df[metric].round(4)
+
+    )
+
+    fig.update_traces(
+
+        textposition="outside"
 
     )
 
     fig.update_layout(
 
-        height=420,
+        title=f"{metric} Comparison",
 
-        title=f"{column} Comparison"
+        height=450,
+
+        xaxis_title="Model",
+
+        yaxis_title=metric,
+
+        showlegend=False
 
     )
 
     return fig
 
-=========================================================
-RADAR CHART
-=========================================================
 
+# =====================================================
+# LINE CHART
+# =====================================================
+
+def metric_line(df):
+
+    data = df.melt(
+
+        id_vars="Model",
+
+        value_vars=[
+
+            "Accuracy",
+
+            "Precision",
+
+            "Recall",
+
+            "F1 Score"
+
+        ],
+
+        var_name="Metric",
+
+        value_name="Score"
+
+    )
+
+    fig = px.line(
+
+        data,
+
+        x="Metric",
+
+        y="Score",
+
+        color="Model",
+
+        markers=True
+
+    )
+
+    fig.update_layout(
+
+        title="Performance Comparison",
+
+        height=450
+
+    )
+
+    return fig
+
+
+# =====================================================
+# RADAR CHART
+# =====================================================
 
 def radar_chart(df):
 
-    categories=[
+    categories = [
 
         "Accuracy",
 
@@ -201,9 +281,9 @@ def radar_chart(df):
 
     ]
 
-    fig=go.Figure()
+    fig = go.Figure()
 
-    for _,row in df.iterrows():
+    for _, row in df.iterrows():
 
         fig.add_trace(
 
@@ -233,40 +313,40 @@ def radar_chart(df):
 
     fig.update_layout(
 
-        height=600,
-
         polar=dict(
 
             radialaxis=dict(
 
                 visible=True,
 
-                range=[0,1]
+                range=[0, 1]
 
             )
 
-        )
+        ),
+
+        height=600,
+
+        title="Radar Performance Comparison"
 
     )
 
     return fig
+    # =====================================================
+# CONFUSION MATRIX
+# =====================================================
 
-=========================================================
-CONFUSION MATRIX
-=========================================================
-
-
-def plot_confusion_matrix(df,title):
+def plot_confusion_matrix(cm_df, title="Confusion Matrix"):
 
     fig = px.imshow(
 
-        df,
+        cm_df,
 
         text_auto=True,
 
-        aspect="auto",
+        color_continuous_scale="Blues",
 
-        color_continuous_scale="Blues"
+        aspect="auto"
 
     )
 
@@ -274,30 +354,39 @@ def plot_confusion_matrix(df,title):
 
         title=title,
 
+        xaxis_title="Predicted Label",
+
+        yaxis_title="True Label",
+
         height=500
 
     )
 
     return fig
 
-=========================================================
-TRAINING HISTORY
-=========================================================
 
+# =====================================================
+# TRAINING HISTORY
+# =====================================================
 
-def training_history_chart(df):
+def training_history_chart(history_df):
 
     fig = go.Figure()
 
-    if "loss" in df.columns:
+    # Training Loss
+    if "loss" in history_df.columns:
+
+        train = history_df.dropna(subset=["loss"])
 
         fig.add_trace(
 
             go.Scatter(
 
-                x=df["epoch"],
+                x=train["epoch"],
 
-                y=df["loss"],
+                y=train["loss"],
+
+                mode="lines+markers",
 
                 name="Training Loss"
 
@@ -305,15 +394,20 @@ def training_history_chart(df):
 
         )
 
-    if "eval_loss" in df.columns:
+    # Validation Loss
+    if "eval_loss" in history_df.columns:
+
+        valid = history_df.dropna(subset=["eval_loss"])
 
         fig.add_trace(
 
             go.Scatter(
 
-                x=df["epoch"],
+                x=valid["epoch"],
 
-                y=df["eval_loss"],
+                y=valid["eval_loss"],
+
+                mode="lines+markers",
 
                 name="Validation Loss"
 
@@ -325,8 +419,80 @@ def training_history_chart(df):
 
         title="Training History",
 
+        xaxis_title="Epoch",
+
+        yaxis_title="Loss",
+
         height=450
 
     )
 
     return fig
+
+
+# =====================================================
+# DOWNLOAD METRICS
+# =====================================================
+
+def metrics_csv(df):
+
+    return df.to_csv(
+
+        index=False
+
+    ).encode("utf-8")
+
+
+# =====================================================
+# DOWNLOAD REPORT
+# =====================================================
+
+def report_csv(df):
+
+    return df.to_csv(
+
+        index=False
+
+    ).encode("utf-8")
+
+
+# =====================================================
+# DOWNLOAD HISTORY
+# =====================================================
+
+def history_csv(df):
+
+    return df.to_csv(
+
+        index=False
+
+    ).encode("utf-8")
+
+
+# =====================================================
+# SUMMARY
+# =====================================================
+
+def summary_model(df):
+
+    best = best_model(df)
+
+    if best is None:
+
+        return "No evaluation result."
+
+    summary = f"""
+Best Model : {best['Model']}
+
+Accuracy : {best['Accuracy']:.2%}
+
+Precision : {best['Precision']:.2%}
+
+Recall : {best['Recall']:.2%}
+
+F1 Score : {best['F1 Score']:.2%}
+
+Loss : {best['Loss']:.4f}
+"""
+
+    return summary
