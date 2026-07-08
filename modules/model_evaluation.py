@@ -18,11 +18,7 @@ import plotly.graph_objects as go
 
 MODEL_REPOS = {
 
-    "IndoBERT": "envidevelopment/livin-emotion-indobert",
-
-    "mBERT": "envidevelopment/livin-emotion-mbert",
-
-    "DeBERTa": "envidevelopment/livin-emotion-deberta"
+    "Akurasi": "envidevelopment/livin-emotion-indobert",
 
 }
 
