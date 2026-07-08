@@ -14,7 +14,8 @@ from modules.model_evaluation import (
     best_model,
     ranking_model,
     metric_bar,
-    radar_chart
+    radar_chart,
+    summary_model
 )
 
 # =====================================================
