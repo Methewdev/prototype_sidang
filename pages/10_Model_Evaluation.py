@@ -1,21 +1,24 @@
-"""
-=========================================================
+
+# =========================================================
 MODEL EVALUATION
-=========================================================
-"""
+# =========================================================
 
 import streamlit as st
 
-from modules.utils import (
-    require_session
-)
+from modules.utils import require_session
 
 from modules.model_evaluation import (
+    MODEL_REPOS,
     get_all_metrics,
     best_model,
     metric_bar,
     radar_chart,
-    MODEL_REPOS
+    load_report,
+    load_confusion_matrix,
+    load_history,
+    plot_confusion_matrix,
+    training_history_chart,
+    ranking_model,
 )
 
 # =====================================================
@@ -38,12 +41,8 @@ st.title("🏆 Model Evaluation")
 
 st.markdown(
 """
-Perbandingan performa tiga model Transformer
-yang digunakan pada penelitian.
-
-- IndoBERT
-- mBERT
-- DeBERTa
+Perbandingan performa model Transformer yang digunakan
+dalam penelitian Customer Retention.
 """
 )
 
@@ -51,9 +50,23 @@ yang digunakan pada penelitian.
 # LOAD DATA
 # =====================================================
 
-with st.spinner("Loading evaluation metrics..."):
+try:
 
-    metrics_df = get_all_metrics()
+    with st.spinner("Loading evaluation metrics..."):
+
+        metrics_df = get_all_metrics()
+
+except Exception as e:
+
+    st.error(f"Failed loading metrics.\n\n{e}")
+
+    st.stop()
+
+if metrics_df.empty:
+
+    st.warning("Metrics tidak ditemukan.")
+
+    st.stop()
 
 best = best_model(metrics_df)
 
@@ -64,20 +77,21 @@ best = best_model(metrics_df)
 st.success(
 
 f"""
-### 🏆 Best Model
+🏆 **Best Model**
 
-Model terbaik berdasarkan **F1 Score**
+Model terbaik berdasarkan **Weighted F1 Score**
 
 **{best['Model']}**
 
-Accuracy :
+Accuracy : **{best['Accuracy']:.2%}**
 
-**{best['Accuracy']:.2%}**
+Precision : **{best['Precision']:.2%}**
 
-F1 Score :
+Recall : **{best['Recall']:.2%}**
 
-**{best['F1 Score']:.2%}**
+F1 Score : **{best['F1 Score']:.2%}**
 """
+
 )
 
 # =====================================================
@@ -86,57 +100,32 @@ F1 Score :
 
 st.subheader("📊 Performance Metrics")
 
-col1,col2,col3,col4,col5 = st.columns(5)
+c1,c2,c3,c4,c5 = st.columns(5)
 
-with col1:
+c1.metric(
+    "Accuracy",
+    f"{best['Accuracy']:.2%}"
+)
 
-    st.metric(
+c2.metric(
+    "Precision",
+    f"{best['Precision']:.2%}"
+)
 
-        "Accuracy",
+c3.metric(
+    "Recall",
+    f"{best['Recall']:.2%}"
+)
 
-        f"{best['Accuracy']:.2%}"
+c4.metric(
+    "F1 Score",
+    f"{best['F1 Score']:.2%}"
+)
 
-    )
-
-with col2:
-
-    st.metric(
-
-        "Precision",
-
-        f"{best['Precision']:.2%}"
-
-    )
-
-with col3:
-
-    st.metric(
-
-        "Recall",
-
-        f"{best['Recall']:.2%}"
-
-    )
-
-with col4:
-
-    st.metric(
-
-        "F1 Score",
-
-        f"{best['F1 Score']:.2%}"
-
-    )
-
-with col5:
-
-    st.metric(
-
-        "Loss",
-
-        f"{best['Loss']:.4f}"
-
-    )
+c5.metric(
+    "Loss",
+    f"{best['Loss']:.4f}"
+)
 
 st.divider()
 
@@ -146,31 +135,35 @@ st.divider()
 
 st.subheader("📋 Model Comparison")
 
-show_df = metrics_df.copy()
+table = metrics_df.copy()
 
-show_df["Accuracy"] = show_df["Accuracy"].map(
-    lambda x:f"{x:.2%}"
-)
+for col in [
 
-show_df["Precision"] = show_df["Precision"].map(
-    lambda x:f"{x:.2%}"
-)
+    "Accuracy",
 
-show_df["Recall"] = show_df["Recall"].map(
-    lambda x:f"{x:.2%}"
-)
+    "Precision",
 
-show_df["F1 Score"] = show_df["F1 Score"].map(
-    lambda x:f"{x:.2%}"
-)
+    "Recall",
 
-show_df["Loss"] = show_df["Loss"].map(
+    "F1 Score"
+
+]:
+
+    table[col] = table[col].map(
+
+        lambda x:f"{x:.2%}"
+
+    )
+
+table["Loss"] = table["Loss"].map(
+
     lambda x:f"{x:.4f}"
+
 )
 
 st.dataframe(
 
-    show_df,
+    table,
 
     use_container_width=True,
 
@@ -178,80 +171,67 @@ st.dataframe(
 
 )
 
+st.download_button(
+
+    "⬇ Download Metrics",
+
+    metrics_df.to_csv(index=False),
+
+    file_name="metrics.csv",
+
+    mime="text/csv"
+
+)
+
 st.divider()
-
 # =====================================================
-# COMPARISON CHART
+# PERFORMANCE VISUALIZATION
 # =====================================================
 
-st.subheader("📈 Model Comparison Chart")
+st.subheader("📈 Performance Comparison")
 
-left,right = st.columns(2)
+col1, col2 = st.columns(2)
 
-with left:
+with col1:
 
     st.plotly_chart(
-
         metric_bar(
-
             metrics_df,
-
             "Accuracy"
-
         ),
-
         use_container_width=True
-
     )
 
-with right:
+with col2:
 
     st.plotly_chart(
-
         metric_bar(
-
             metrics_df,
-
-            "F1 Score"
-
-        ),
-
-        use_container_width=True
-
-    )
-
-left,right = st.columns(2)
-
-with left:
-
-    st.plotly_chart(
-
-        metric_bar(
-
-            metrics_df,
-
             "Precision"
-
         ),
-
         use_container_width=True
-
     )
 
-with right:
+col3, col4 = st.columns(2)
+
+with col3:
 
     st.plotly_chart(
-
         metric_bar(
-
             metrics_df,
-
             "Recall"
-
         ),
-
         use_container_width=True
+    )
 
+with col4:
+
+    st.plotly_chart(
+        metric_bar(
+            metrics_df,
+            "F1 Score"
+        ),
+        use_container_width=True
     )
 
 st.divider()
@@ -260,18 +240,212 @@ st.divider()
 # RADAR CHART
 # =====================================================
 
-st.subheader("📡 Overall Performance")
+st.subheader("📡 Overall Model Performance")
 
 st.plotly_chart(
 
     radar_chart(
-
         metrics_df
-
     ),
 
     use_container_width=True
 
 )
+
+st.divider()
+
+# =====================================================
+# MODEL RANKING
+# =====================================================
+
+st.subheader("🥇 Model Ranking")
+
+ranking_df = ranking_model(metrics_df)
+
+ranking_show = ranking_df.copy()
+
+for col in [
+
+    "Accuracy",
+
+    "Precision",
+
+    "Recall",
+
+    "F1 Score"
+
+]:
+
+    ranking_show[col] = ranking_show[col].map(
+
+        lambda x: f"{x:.2%}"
+
+    )
+
+ranking_show["Loss"] = ranking_show["Loss"].map(
+
+    lambda x: f"{x:.4f}"
+
+)
+
+st.dataframe(
+
+    ranking_show,
+
+    use_container_width=True,
+
+    hide_index=True
+
+)
+
+st.info(
+
+"""
+Ranking dihitung berdasarkan nilai **Weighted F1 Score**.
+Model dengan nilai F1 tertinggi menjadi model terbaik.
+"""
+
+)
+
+st.divider()
+# =====================================================
+# DETAIL MODEL EVALUATION
+# =====================================================
+
+st.subheader("📑 Detail Evaluation")
+
+tab1, tab2, tab3 = st.tabs(
+    [
+        "🤖 IndoBERT",
+        "🌐 mBERT",
+        "🚀 DeBERTa"
+    ]
+)
+with tab1:
+
+    repo = MODEL_REPOS["IndoBERT"]
+
+    st.markdown("## 🤖 IndoBERT")
+
+    # ----------------------------------
+    # Classification Report
+    # ----------------------------------
+
+    st.markdown("### 📄 Classification Report")
+
+    report = load_report(repo)
+
+    st.dataframe(
+        report,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    # ----------------------------------
+    # Confusion Matrix
+    # ----------------------------------
+
+    st.markdown("### 🔥 Confusion Matrix")
+
+    cm = load_confusion_matrix(repo)
+
+    st.plotly_chart(
+        plot_confusion_matrix(
+            cm,
+            "IndoBERT Confusion Matrix"
+        ),
+        use_container_width=True
+    )
+
+    # ----------------------------------
+    # Training History
+    # ----------------------------------
+
+    st.markdown("### 📈 Training History")
+
+    history = load_history(repo)
+
+    st.plotly_chart(
+        training_history_chart(
+            history
+        ),
+        use_container_width=True
+    )
+    with tab2:
+
+    repo = MODEL_REPOS["mBERT"]
+
+    st.markdown("## 🌐 mBERT")
+
+    st.markdown("### 📄 Classification Report")
+
+    report = load_report(repo)
+
+    st.dataframe(
+        report,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.markdown("### 🔥 Confusion Matrix")
+
+    cm = load_confusion_matrix(repo)
+
+    st.plotly_chart(
+        plot_confusion_matrix(
+            cm,
+            "mBERT Confusion Matrix"
+        ),
+        use_container_width=True
+    )
+
+    st.markdown("### 📈 Training History")
+
+    history = load_history(repo)
+
+    st.plotly_chart(
+        training_history_chart(
+            history
+        ),
+        use_container_width=True
+    )
+    with tab3:
+
+    repo = MODEL_REPOS["DeBERTa"]
+
+    st.markdown("## 🚀 DeBERTa")
+
+    st.markdown("### 📄 Classification Report")
+
+    report = load_report(repo)
+
+    st.dataframe(
+        report,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.markdown("### 🔥 Confusion Matrix")
+
+    cm = load_confusion_matrix(repo)
+
+    st.plotly_chart(
+        plot_confusion_matrix(
+            cm,
+            "DeBERTa Confusion Matrix"
+        ),
+        use_container_width=True
+    )
+
+    st.markdown("### 📈 Training History")
+
+    history = load_history(repo)
+
+    st.plotly_chart(
+        training_history_chart(
+            history
+        ),
+        use_container_width=True
+    )
 
 st.divider()
