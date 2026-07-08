@@ -32,7 +32,12 @@ st.set_page_config(
     layout="wide"
 )
 
-require_session()
+# Halaman ini tidak memerlukan session
+# require_session()
+
+# =====================================================
+# TITLE
+# =====================================================
 
 # =====================================================
 # TITLE
