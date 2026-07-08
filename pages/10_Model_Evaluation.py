@@ -169,3 +169,236 @@ st.dataframe(
 )
 
 st.divider()
+# =====================================================
+# PERFORMANCE VISUALIZATION
+# =====================================================
+
+st.subheader("📈 Performance Visualization")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.plotly_chart(
+        metric_bar(
+            metrics_df,
+            "Accuracy"
+        ),
+        use_container_width=True
+    )
+
+with col2:
+
+    st.plotly_chart(
+        metric_bar(
+            metrics_df,
+            "Precision"
+        ),
+        use_container_width=True
+    )
+
+
+col3, col4 = st.columns(2)
+
+with col3:
+
+    st.plotly_chart(
+        metric_bar(
+            metrics_df,
+            "Recall"
+        ),
+        use_container_width=True
+    )
+
+with col4:
+
+    st.plotly_chart(
+        metric_bar(
+            metrics_df,
+            "F1 Score"
+        ),
+        use_container_width=True
+    )
+
+
+st.divider()
+
+
+# =====================================================
+# RADAR CHART
+# =====================================================
+
+st.subheader("📡 Overall Performance")
+
+st.plotly_chart(
+
+    radar_chart(
+        metrics_df
+    ),
+
+    use_container_width=True
+
+)
+
+st.divider()
+
+
+# =====================================================
+# MODEL RANKING
+# =====================================================
+
+st.subheader("🥇 Model Ranking")
+
+ranking_df = ranking_model(metrics_df)
+
+ranking_show = ranking_df.copy()
+
+percentage_columns = [
+
+    "Accuracy",
+
+    "Precision",
+
+    "Recall",
+
+    "F1 Score"
+
+]
+
+for col in percentage_columns:
+
+    ranking_show[col] = ranking_show[col].apply(
+
+        lambda x: f"{x:.2%}"
+
+    )
+
+ranking_show["Loss"] = ranking_show["Loss"].apply(
+
+    lambda x: f"{x:.4f}"
+
+)
+
+st.dataframe(
+
+    ranking_show,
+
+    use_container_width=True,
+
+    hide_index=True
+
+)
+
+st.info(
+"""
+Model diurutkan berdasarkan **Weighted F1 Score**.
+
+Semakin tinggi nilai F1 Score,
+semakin baik performa model dalam
+mengklasifikasikan emosi pengguna.
+"""
+)
+
+st.divider()
+# =====================================================
+# DETAIL EVALUATION
+# =====================================================
+
+st.subheader("📑 Detail Evaluation")
+
+tabs = st.tabs(list(MODEL_REPOS.keys()))
+
+for tab, (model_name, repo) in zip(
+    tabs,
+    MODEL_REPOS.items()
+):
+
+    with tab:
+
+        st.markdown(f"## 🤖 {model_name}")
+
+        # ============================================
+        # CLASSIFICATION REPORT
+        # ============================================
+
+        st.markdown("### 📄 Classification Report")
+
+        try:
+
+            report = load_report(repo)
+
+            st.dataframe(
+                report,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        except Exception as e:
+
+            st.warning(
+                f"Classification Report tidak ditemukan.\n\n{e}"
+            )
+
+        st.divider()
+
+        # ============================================
+        # CONFUSION MATRIX
+        # ============================================
+
+        st.markdown("### 🔥 Confusion Matrix")
+
+        try:
+
+            cm = load_confusion_matrix(repo)
+
+            st.plotly_chart(
+
+                plot_confusion_matrix(
+
+                    cm,
+
+                    f"{model_name} Confusion Matrix"
+
+                ),
+
+                use_container_width=True
+
+            )
+
+        except Exception as e:
+
+            st.warning(
+                f"Confusion Matrix tidak ditemukan.\n\n{e}"
+            )
+
+        st.divider()
+
+        # ============================================
+        # TRAINING HISTORY
+        # ============================================
+
+        st.markdown("### 📈 Training History")
+
+        try:
+
+            history = load_history(repo)
+
+            st.plotly_chart(
+
+                training_history_chart(
+
+                    history
+
+                ),
+
+                use_container_width=True
+
+            )
+
+        except Exception as e:
+
+            st.warning(
+                f"Training History tidak ditemukan.\n\n{e}"
+            )
+
+st.divider()
