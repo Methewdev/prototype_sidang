@@ -276,32 +276,4 @@ dalam mengklasifikasikan emosi pengguna.
 
 st.divider()
 
-        # ============================================
-        # TRAINING HISTORY
-        # ============================================
-
-        st.markdown("### 📈 Training History")
-
-        try:
-
-            history = load_history(repo)
-
-            st.plotly_chart(
-
-                training_history_chart(
-
-                    history
-
-                ),
-
-                use_container_width=True
-
-            )
-
-        except Exception as e:
-
-            st.warning(
-                f"Training History tidak ditemukan.\n\n{e}"
-            )
-
-st.divider()
+    
