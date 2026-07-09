@@ -155,7 +155,6 @@ display_columns = [
         "final_text",
         "emotion",
         "Customer Segment",
-        "Risk Level",
         "Priority",
         "Retention Strategy",
         "Recommended Action"
