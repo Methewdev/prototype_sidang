@@ -336,7 +336,7 @@ else:
 
     segment = "😊 Nasabah Puas"
 
-    priority = "Low"
+    risk = "Low"
 
     description = """
 Pelanggan merasa puas terhadap aplikasi
@@ -582,12 +582,21 @@ c1.metric(
 )
 
 c2.metric(
-    "Prio Level",
+    "Risk Level",
     risk
 )
 
 st.info(description)
+# =====================================================
+# CUSTOMER RETENTION STRATEGY
+# =====================================================
 
+st.divider()
+
+st.subheader("❤️ Customer Retention Strategy")
+
+# =====================================================
+# RETENTION RULE
 # =====================================================
 # =====================================================
 # RETENTION RULE
