@@ -303,7 +303,7 @@ if emotion == "Frustrasi":
 
     segment = "😠 Nasabah Frustasi"
 
-    risk = "Very High"
+    priority = "Very High"
 
     description = """
 Pelanggan mengalami frustrasi tinggi terhadap aplikasi
@@ -314,7 +314,7 @@ elif emotion == "Sedih":
 
     segment = "😟 Nasabah Tidak Puas"
 
-    risk = "High"
+    priority = "High"
 
     description = """
 Pelanggan merasa kecewa terhadap layanan aplikasi
@@ -325,7 +325,7 @@ elif emotion == "Netral":
 
     segment = "😐 Nasabah Passive"
 
-    risk = "Medium"
+    priority = "Medium"
 
     description = """
 Pelanggan belum menunjukkan emosi dominan.
@@ -336,7 +336,7 @@ else:
 
     segment = "😊 Nasabah Puas"
 
-    risk = "Low"
+    priority = "Low"
 
     description = """
 Pelanggan merasa puas terhadap aplikasi
