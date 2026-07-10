@@ -582,21 +582,12 @@ c1.metric(
 )
 
 c2.metric(
-    "Risk Level",
+    "Prio Level",
     risk
 )
 
 st.info(description)
-# =====================================================
-# CUSTOMER RETENTION STRATEGY
-# =====================================================
 
-st.divider()
-
-st.subheader("❤️ Customer Retention Strategy")
-
-# =====================================================
-# RETENTION RULE
 # =====================================================
 # =====================================================
 # RETENTION RULE
