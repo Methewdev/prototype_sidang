@@ -2,12 +2,19 @@
 =========================================================
 PREPROCESSING MODULE
 =========================================================
-Cleaning
-Case Folding
-Normalization
-Stopword Removal
-Stemming
-Tokenization
+Pipeline:
+
+1. Cleaning
+2. Case Folding
+3. Normalization
+4. Repeated Character Handling
+5. Tokenization
+
+Catatan:
+- Stopword Removal TIDAK digunakan
+- Stemming TIDAK digunakan
+- Emoji dipertahankan karena dapat menjadi sinyal emosi
+- Pipeline disesuaikan untuk model Transformer/BERT
 =========================================================
 """
 
@@ -18,10 +25,8 @@ from collections import Counter
 import pandas as pd
 import streamlit as st
 
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
-
 from config import SLANG_FILE
+
 
 # =========================================================
 # LOAD SLANG DICTIONARY
@@ -29,17 +34,43 @@ from config import SLANG_FILE
 
 @st.cache_resource
 def load_slang_dictionary():
+
     try:
+
         slang = pd.read_csv(SLANG_FILE)
 
-        slang.columns = [c.lower().strip() for c in slang.columns]
+        slang.columns = [
+            c.lower().strip()
+            for c in slang.columns
+        ]
 
         if "slang" in slang.columns and "formal" in slang.columns:
-            return dict(zip(slang["slang"], slang["formal"]))
+
+            slang["slang"] = (
+                slang["slang"]
+                .astype(str)
+                .str.lower()
+                .str.strip()
+            )
+
+            slang["formal"] = (
+                slang["formal"]
+                .astype(str)
+                .str.lower()
+                .str.strip()
+            )
+
+            return dict(
+                zip(
+                    slang["slang"],
+                    slang["formal"]
+                )
+            )
 
         return {}
 
     except Exception:
+
         return {}
 
 
@@ -47,37 +78,116 @@ SLANG_DICT = load_slang_dictionary()
 
 
 # =========================================================
-# STOPWORDS
+# TAMBAHAN SLANG UMUM
+# =========================================================
+# Digunakan untuk memastikan beberapa contoh pada tesis
+# seperti:
+# gw -> saya
+# udah -> sudah
+# gajelas -> tidak jelas
+# gak -> tidak
+# dll.
 # =========================================================
 
-stop_factory = StopWordRemoverFactory()
-STOPWORDS = set(stop_factory.get_stop_words())
+COMMON_SLANG = {
+
+    "gw": "saya",
+    "gua": "saya",
+    "gue": "saya",
+
+    "lu": "kamu",
+    "loe": "kamu",
+
+    "udah": "sudah",
+    "udh": "sudah",
+    "dah": "sudah",
+
+    "gak": "tidak",
+    "ga": "tidak",
+    "gk": "tidak",
+    "nggak": "tidak",
+    "ngga": "tidak",
+    "enggak": "tidak",
+
+    "gajelas": "tidak jelas",
+    "ga jelas": "tidak jelas",
+
+    "bgt": "banget",
+    "banget": "banget",
+
+    "yg": "yang",
+    "dgn": "dengan",
+    "dr": "dari",
+    "utk": "untuk",
+    "krn": "karena",
+    "karna": "karena",
+
+    "tp": "tapi",
+    "tpi": "tapi",
+
+    "blm": "belum",
+    "belom": "belum",
+
+    "bkn": "bukan",
+
+    "sm": "sama",
+    "sma": "sama",
+
+    "aja": "saja",
+    "aj": "saja",
+
+    "kalo": "kalau",
+    "kl": "kalau",
+
+    "makasih": "terima kasih",
+    "mksh": "terima kasih",
+    "thx": "terima kasih",
+
+    "pls": "tolong",
+    "plis": "tolong",
+
+    "dpt": "dapat",
+    "dapet": "dapat",
+
+    "pake": "pakai",
+    "pakai": "pakai",
+
+    "bikin": "membuat",
+    "bgt": "banget",
+
+    "mantul": "mantap",
+
+}
 
 
-# =========================================================
-# STEMMER
-# =========================================================
+# Gabungkan dictionary eksternal + dictionary tambahan
 
-stem_factory = StemmerFactory()
-stemmer = stem_factory.create_stemmer()
+SLANG_DICT = {
+    **COMMON_SLANG,
+    **SLANG_DICT
+}
+
 
 # =========================================================
 # VALIDATE TEXT
 # =========================================================
 
 def validate_text(text):
-    """
-    Validasi input text.
-    Mengembalikan string kosong jika None/NaN.
-    """
 
     if text is None:
         return ""
 
-    if pd.isna(text):
-        return ""
+    try:
+
+        if pd.isna(text):
+            return ""
+
+    except Exception:
+
+        pass
 
     return str(text).strip()
+
 
 # =========================================================
 # CLEANING
@@ -90,28 +200,118 @@ def cleaning(text):
     if text == "":
         return ""
 
-    text = re.sub(r"http\S+|www\S+", " ", text)
-    text = re.sub(r"\S+@\S+", " ", text)
-    text = re.sub(r"@\w+", " ", text)
-    text = re.sub(r"#\w+", " ", text)
-    text = re.sub(r"<.*?>", " ", text)
-    text = re.sub(r"\d+", " ", text)
+    # -----------------------------------------------------
+    # URL
+    # -----------------------------------------------------
 
-    text = text.translate(
-        str.maketrans("", "", string.punctuation)
+    text = re.sub(
+        r"https?://\S+|www\.\S+",
+        " ",
+        text
     )
 
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
-    text = re.sub(r"\s+", " ", text)
+    # -----------------------------------------------------
+    # EMAIL
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"\S+@\S+",
+        " ",
+        text
+    )
+
+    # -----------------------------------------------------
+    # USERNAME / MENTION
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"@\w+",
+        " ",
+        text
+    )
+
+    # -----------------------------------------------------
+    # HASHTAG
+    # -----------------------------------------------------
+
+    # #
+    # dihapus tetapi kata setelahnya dipertahankan
+    #
+    # contoh:
+    # #LivinMandiri
+    # menjadi:
+    # LivinMandiri
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"#",
+        "",
+        text
+    )
+
+    # -----------------------------------------------------
+    # HTML
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"<.*?>",
+        " ",
+        text
+    )
+
+    # -----------------------------------------------------
+    # ANGKA
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"\d+",
+        " ",
+        text
+    )
+
+    # -----------------------------------------------------
+    # PUNCTUATION
+    # -----------------------------------------------------
+
+    # Emoji TIDAK dihapus.
+    #
+    # Kita hanya menghapus punctuation ASCII.
+    #
+    # Contoh:
+    # ! ? , . tetap dibersihkan
+    # 😡 😭 😍 ❤️ tetap dipertahankan
+    # -----------------------------------------------------
+
+    text = text.translate(
+        str.maketrans(
+            "",
+            "",
+            string.punctuation
+        )
+    )
+
+    # -----------------------------------------------------
+    # NORMALISASI SPASI
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    )
 
     return text.strip()
+
 
 # =========================================================
 # CASE FOLDING
 # =========================================================
 
 def case_folding(text):
-    return str(text).lower()
+
+    text = validate_text(text)
+
+    return text.lower()
 
 
 # =========================================================
@@ -120,46 +320,60 @@ def case_folding(text):
 
 def normalization(text):
 
-    words = text.split()
+    text = validate_text(text)
 
-    words = [
-        SLANG_DICT.get(word, word)
-        for word in words
-    ]
-
-    return " ".join(words)
-
-
-# =========================================================
-# STOPWORD REMOVAL
-# =========================================================
-
-def remove_stopword(text):
-
-    if pd.isna(text):
+    if text == "":
         return ""
 
     words = text.split()
 
-    words = [
-        word
-        for word in words
-        if word not in STOPWORDS
-    ]
+    normalized_words = []
 
-    return " ".join(words)
+    for word in words:
+
+        # Cari langsung di dictionary
+        replacement = SLANG_DICT.get(
+            word,
+            word
+        )
+
+        normalized_words.append(
+            replacement
+        )
+
+    return " ".join(
+        normalized_words
+    )
 
 
 # =========================================================
-# STEMMING
+# REPEATED CHARACTER HANDLING
 # =========================================================
 
-def stemming(text):
+def repeated_character_handling(text):
 
-    if pd.isna(text):
+    text = validate_text(text)
+
+    if text == "":
         return ""
 
-    return stemmer.stem(text)
+    # -----------------------------------------------------
+    # Mengurangi karakter berulang:
+    #
+    # baguuuus -> bagus
+    # lamaaaaa -> lama
+    # mantaaap -> mantap
+    #
+    # Maksimal dua karakter berturut-turut.
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"(.)\1{2,}",
+        r"\1",
+        text
+    )
+
+    return text
 
 
 # =========================================================
@@ -168,8 +382,16 @@ def stemming(text):
 
 def tokenization(text):
 
-    if pd.isna(text):
+    text = validate_text(text)
+
+    if text == "":
         return []
+
+    # Tokenisasi sederhana untuk tampilan.
+    #
+    # Tokenisasi utama saat masuk model tetap
+    # menggunakan tokenizer IndoBERT.
+    #
 
     return text.split()
 
@@ -179,57 +401,70 @@ def tokenization(text):
 # =========================================================
 
 def preprocess_text(text):
-    """
-    Preprocess satu review.
-    Digunakan oleh:
-    - Batch Prediction
-    - Single Prediction
-    - Dashboard
-    """
 
-    original = validate_text(text)
+    original = validate_text(
+        text
+    )
 
-    clean = cleaning(original)
-    lower = case_folding(clean)
-    normal = normalization(lower)
-    stop = remove_stopword(normal)
-    stem = stemming(stop)
-    token = tokenization(stem)
+    clean = cleaning(
+        original
+    )
+
+    lower = case_folding(
+        clean
+    )
+
+    normal = normalization(
+        lower
+    )
+
+    repeated = repeated_character_handling(
+        normal
+    )
+
+    token = tokenization(
+        repeated
+    )
 
     return {
 
-        "original_text": original,
+        "original_text":
+            original,
 
-        "cleaning": clean,
+        "cleaning":
+            clean,
 
-        "case_folding": lower,
+        "case_folding":
+            lower,
 
-        "normalization": normal,
+        "normalization":
+            normal,
 
-        "stopword": stop,
+        "repeated_character":
+            repeated,
 
-        "stemming": stem,
+        "token":
+            token,
 
-        "token": token,
-
-        "final_text": " ".join(token)
+        "final_text":
+            repeated
 
     }
+
+
 # =========================================================
 # PREPROCESS DATAFRAME
 # =========================================================
 
-def preprocess_dataframe(df, text_column="review"):
-    """
-    Preprocess seluruh dataframe.
-
-    Default menggunakan kolom review
-    hasil Live Scraper.
-    """
+def preprocess_dataframe(
+    df,
+    text_column="review"
+):
 
     df = df.copy()
 
     if text_column not in df.columns:
+
         raise ValueError(
             f"Kolom '{text_column}' tidak ditemukan."
         )
@@ -240,39 +475,72 @@ def preprocess_dataframe(df, text_column="review"):
         .apply(preprocess_text)
     )
 
+    # -----------------------------------------------------
+    # ORIGINAL
+    # -----------------------------------------------------
+
     df["original_text"] = results.apply(
-        lambda x: x["original_text"]
+        lambda x:
+        x["original_text"]
     )
+
+    # -----------------------------------------------------
+    # CLEANING
+    # -----------------------------------------------------
 
     df["cleaning"] = results.apply(
-        lambda x: x["cleaning"]
+        lambda x:
+        x["cleaning"]
     )
+
+    # -----------------------------------------------------
+    # CASE FOLDING
+    # -----------------------------------------------------
 
     df["case_folding"] = results.apply(
-        lambda x: x["case_folding"]
+        lambda x:
+        x["case_folding"]
     )
+
+    # -----------------------------------------------------
+    # NORMALIZATION
+    # -----------------------------------------------------
 
     df["normalization"] = results.apply(
-        lambda x: x["normalization"]
+        lambda x:
+        x["normalization"]
     )
 
-    df["stopword"] = results.apply(
-        lambda x: x["stopword"]
+    # -----------------------------------------------------
+    # REPEATED CHARACTER
+    # -----------------------------------------------------
+
+    df["repeated_character"] = results.apply(
+        lambda x:
+        x["repeated_character"]
     )
 
-    df["stemming"] = results.apply(
-        lambda x: x["stemming"]
-    )
+    # -----------------------------------------------------
+    # TOKEN
+    # -----------------------------------------------------
 
     df["token"] = results.apply(
-        lambda x: x["token"]
+        lambda x:
+        x["token"]
     )
 
+    # -----------------------------------------------------
+    # FINAL TEXT
+    # -----------------------------------------------------
+
     df["final_text"] = results.apply(
-        lambda x: x["final_text"]
+        lambda x:
+        x["final_text"]
     )
 
     return df
+
+
 # =========================================================
 # PREPROCESSING STATISTICS
 # =========================================================
@@ -280,13 +548,25 @@ def preprocess_dataframe(df, text_column="review"):
 def preprocessing_statistics(df):
 
     return {
-        "Total Review": len(df),
-        "Cleaning": df["cleaning"].notna().sum(),
-        "Case Folding": df["case_folding"].notna().sum(),
-        "Normalization": df["normalization"].notna().sum(),
-        "Stopword": df["stopword"].notna().sum(),
-        "Stemming": df["stemming"].notna().sum(),
-        "Tokenization": df["token"].notna().sum()
+
+        "Total Review":
+            len(df),
+
+        "Cleaning":
+            df["cleaning"].notna().sum(),
+
+        "Case Folding":
+            df["case_folding"].notna().sum(),
+
+        "Normalization":
+            df["normalization"].notna().sum(),
+
+        "Repeated Character":
+            df["repeated_character"].notna().sum(),
+
+        "Tokenization":
+            df["token"].notna().sum()
+
     }
 
 
@@ -297,11 +577,13 @@ def preprocessing_statistics(df):
 def empty_review(df):
 
     return int(
+
         df["final_text"]
         .fillna("")
         .str.strip()
         .eq("")
         .sum()
+
     )
 
 
@@ -312,14 +594,21 @@ def empty_review(df):
 def average_length(df):
 
     if df.empty:
+
         return 0
 
     return round(
+
         df["final_text"]
         .fillna("")
-        .apply(lambda x: len(x.split()))
+        .apply(
+            lambda x:
+            len(x.split())
+        )
         .mean(),
+
         2
+
     )
 
 
@@ -327,18 +616,35 @@ def average_length(df):
 # TOP WORDS
 # =========================================================
 
-def top_words(df, n=20):
+def top_words(
+    df,
+    n=20
+):
 
     words = []
 
-    for sentence in df["final_text"].fillna(""):
-        words.extend(sentence.split())
+    for sentence in (
+        df["final_text"]
+        .fillna("")
+    ):
 
-    counter = Counter(words)
+        words.extend(
+            sentence.split()
+        )
+
+    counter = Counter(
+        words
+    )
 
     return pd.DataFrame(
+
         counter.most_common(n),
-        columns=["Word", "Frequency"]
+
+        columns=[
+            "Word",
+            "Frequency"
+        ]
+
     )
 
 
@@ -351,25 +657,28 @@ def review_length(df):
     result = df.copy()
 
     result["review_length"] = (
+
         result["final_text"]
         .fillna("")
-        .apply(lambda x: len(x.split()))
+        .apply(
+            lambda x:
+            len(x.split())
+        )
+
     )
 
     return result
 
 
 # =========================================================
-# PREPROCESS SINGLE REVIEW
+# SINGLE REVIEW
 # =========================================================
 
 def preprocess_single_review(text):
-    """
-    Preprocess satu review.
-    Digunakan untuk halaman Single Review Analysis.
-    """
 
-    return preprocess_text(text)
+    return preprocess_text(
+        text
+    )
 
 
 # =========================================================
@@ -386,9 +695,7 @@ __all__ = [
 
     "normalization",
 
-    "remove_stopword",
-
-    "stemming",
+    "repeated_character_handling",
 
     "tokenization",
 
