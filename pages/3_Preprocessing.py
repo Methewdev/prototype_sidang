@@ -2,6 +2,19 @@
 =========================================================
 PREPROCESSING
 =========================================================
+Pipeline:
+
+4.3.1 Cleaning
+4.3.2 Case Folding
+4.3.3 Normalization
+4.3.4 Tokenization
+
+Catatan:
+- Stopword Removal tidak digunakan
+- Stemming tidak digunakan
+- Repeated Character Handling menjadi bagian dari Normalization
+- Emoji dipertahankan sebagai sinyal emosional
+=========================================================
 """
 
 import streamlit as st
@@ -90,15 +103,16 @@ st.subheader(
 
 
 st.markdown("""
-**Pipeline yang digunakan:**
+**Pipeline yang digunakan dalam penelitian:**
 
-1. Cleaning
-2. Case Folding
-3. Normalization
-4. Repeated Character Handling
-5. Tokenization
+1. **Cleaning**
+2. **Case Folding**
+3. **Normalization**
+4. **Tokenization**
 
-> Stopword Removal dan Stemming tidak digunakan karena penelitian menggunakan model Transformer/BERT yang mempertahankan konteks kata dalam kalimat.
+**Catatan:** Stopword Removal dan Stemming tidak digunakan karena penelitian menggunakan model Transformer/BERT yang mempertahankan konteks kata dalam kalimat.
+
+Penanganan karakter berulang dilakukan sebagai bagian dari tahap **Normalization**, bukan sebagai tahap preprocessing tersendiri.
 """)
 
 
@@ -106,7 +120,7 @@ st.markdown("---")
 
 
 # =====================================================
-# RUN
+# RUN PREPROCESSING
 # =====================================================
 
 if st.button(
@@ -119,13 +133,42 @@ if st.button(
     status = st.empty()
 
 
+    # -------------------------------------------------
+    # STEP 1
+    # -------------------------------------------------
+
     status.info(
-        "Menjalankan preprocessing..."
+        "Tahap 1/4: Cleaning..."
     )
 
+    progress.progress(25)
 
-    progress.progress(10)
 
+    # -------------------------------------------------
+    # STEP 2
+    # -------------------------------------------------
+
+    status.info(
+        "Tahap 2/4: Case Folding..."
+    )
+
+    progress.progress(50)
+
+
+    # -------------------------------------------------
+    # STEP 3
+    # -------------------------------------------------
+
+    status.info(
+        "Tahap 3/4: Normalization..."
+    )
+
+    progress.progress(75)
+
+
+    # -------------------------------------------------
+    # RUN ACTUAL PREPROCESSING
+    # -------------------------------------------------
 
     preprocess_df = preprocess_dataframe(
         df,
@@ -133,13 +176,20 @@ if st.button(
     )
 
 
+    # -------------------------------------------------
+    # STEP 4
+    # -------------------------------------------------
+
+    status.info(
+        "Tahap 4/4: Tokenization..."
+    )
+
     progress.progress(100)
 
 
-    status.success(
-        "Preprocessing selesai."
-    )
-
+    # -------------------------------------------------
+    # SAVE SESSION
+    # -------------------------------------------------
 
     save_session(
         "preprocess_df",
@@ -147,14 +197,19 @@ if st.button(
     )
 
 
+    status.success(
+        "Preprocessing selesai."
+    )
+
+
 # =====================================================
-# SESSION
+# CHECK SESSION
 # =====================================================
 
 if "preprocess_df" not in st.session_state:
 
     st.info(
-        "Klik tombol Jalankan Preprocessing."
+        "Klik tombol **Jalankan Preprocessing** untuk memproses dataset."
     )
 
     st.stop()
@@ -214,13 +269,17 @@ st.markdown("---")
 
 
 # =====================================================
-# TABS
+# PREPROCESSING RESULT
 # =====================================================
 
 st.subheader(
     "📋 Hasil Setiap Tahapan Preprocessing"
 )
 
+
+# =====================================================
+# TABS
+# =====================================================
 
 tabs = st.tabs([
 
@@ -229,8 +288,6 @@ tabs = st.tabs([
     "🔡 Case Folding",
 
     "🔄 Normalization",
-
-    "🔁 Repeated Character",
 
     "✂ Tokenization",
 
@@ -245,33 +302,48 @@ tabs = st.tabs([
 
 pipeline = [
 
+    # -------------------------------------------------
+    # 4.3.1 Cleaning
+    # -------------------------------------------------
+
     (
         text_column,
         "cleaning"
     ),
+
+    # -------------------------------------------------
+    # 4.3.2 Case Folding
+    # -------------------------------------------------
 
     (
         "cleaning",
         "case_folding"
     ),
 
+    # -------------------------------------------------
+    # 4.3.3 Normalization
+    # -------------------------------------------------
+
     (
         "case_folding",
         "normalization"
     ),
 
-    (
-        "normalization",
-        "repeated_character"
-    ),
+    # -------------------------------------------------
+    # 4.3.4 Tokenization
+    # -------------------------------------------------
 
     (
-        "repeated_character",
+        "normalization",
         "token"
     ),
 
+    # -------------------------------------------------
+    # Final Text
+    # -------------------------------------------------
+
     (
-        "repeated_character",
+        "normalization",
         "final_text"
     )
 
@@ -279,7 +351,7 @@ pipeline = [
 
 
 # =====================================================
-# DISPLAY
+# DISPLAY RESULT
 # =====================================================
 
 for tab, (
@@ -292,6 +364,10 @@ for tab, (
 
     with tab:
 
+        # -------------------------------------------------
+        # CHECK BEFORE COLUMN
+        # -------------------------------------------------
+
         if before not in preprocess_df.columns:
 
             st.warning(
@@ -300,6 +376,10 @@ for tab, (
 
             continue
 
+
+        # -------------------------------------------------
+        # CHECK AFTER COLUMN
+        # -------------------------------------------------
 
         if after not in preprocess_df.columns:
 
@@ -310,6 +390,10 @@ for tab, (
             continue
 
 
+        # -------------------------------------------------
+        # PREVIEW
+        # -------------------------------------------------
+
         preview = preprocess_df[
             [
                 before,
@@ -318,7 +402,10 @@ for tab, (
         ].copy()
 
 
-        # Token berupa list
+        # -------------------------------------------------
+        # TOKEN LIST -> STRING
+        # -------------------------------------------------
+
         if after == "token":
 
             preview["token"] = (
@@ -335,6 +422,10 @@ for tab, (
             )
 
 
+        # -------------------------------------------------
+        # DISPLAY
+        # -------------------------------------------------
+
         st.dataframe(
 
             preview,
@@ -344,3 +435,22 @@ for tab, (
             height=450
 
         )
+
+
+# =====================================================
+# SUMMARY
+# =====================================================
+
+st.markdown("---")
+
+st.subheader(
+    "📌 Ringkasan Preprocessing"
+)
+
+st.markdown("""
+Dataset telah melalui empat tahap preprocessing utama:
+
+**Cleaning → Case Folding → Normalization → Tokenization**
+
+Hasil akhir pada kolom **Final Text** digunakan sebagai input teks untuk proses selanjutnya, yaitu tokenisasi menggunakan tokenizer model Transformer dan proses klasifikasi emosi.
+""")
