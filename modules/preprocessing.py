@@ -2,19 +2,20 @@
 =========================================================
 PREPROCESSING MODULE
 =========================================================
+
 Pipeline:
 
 1. Cleaning
 2. Case Folding
 3. Normalization
-4. Repeated Character Handling
-5. Tokenization
+4. Tokenization
 
 Catatan:
-- Stopword Removal TIDAK digunakan
-- Stemming TIDAK digunakan
-- Emoji dipertahankan karena dapat menjadi sinyal emosi
-- Pipeline disesuaikan untuk model Transformer/BERT
+- Stopword Removal tidak digunakan
+- Stemming tidak digunakan
+- Emoji dipertahankan
+- Repeated character handling dilakukan pada tahap Normalization
+- Tokenisasi final model dilakukan menggunakan tokenizer Transformer
 =========================================================
 """
 
@@ -78,15 +79,7 @@ SLANG_DICT = load_slang_dictionary()
 
 
 # =========================================================
-# TAMBAHAN SLANG UMUM
-# =========================================================
-# Digunakan untuk memastikan beberapa contoh pada tesis
-# seperti:
-# gw -> saya
-# udah -> sudah
-# gajelas -> tidak jelas
-# gak -> tidak
-# dll.
+# SLANG TAMBAHAN
 # =========================================================
 
 COMMON_SLANG = {
@@ -110,15 +103,14 @@ COMMON_SLANG = {
     "enggak": "tidak",
 
     "gajelas": "tidak jelas",
-    "ga jelas": "tidak jelas",
 
     "bgt": "banget",
-    "banget": "banget",
 
     "yg": "yang",
     "dgn": "dengan",
     "dr": "dari",
     "utk": "untuk",
+
     "krn": "karena",
     "karna": "karena",
 
@@ -150,17 +142,12 @@ COMMON_SLANG = {
     "dapet": "dapat",
 
     "pake": "pakai",
-    "pakai": "pakai",
 
     "bikin": "membuat",
-    "bgt": "banget",
 
-    "mantul": "mantap",
-
+    "mantul": "mantap"
 }
 
-
-# Gabungkan dictionary eksternal + dictionary tambahan
 
 SLANG_DICT = {
     **COMMON_SLANG,
@@ -190,7 +177,7 @@ def validate_text(text):
 
 
 # =========================================================
-# CLEANING
+# 4.3.1 CLEANING
 # =========================================================
 
 def cleaning(text):
@@ -200,88 +187,52 @@ def cleaning(text):
     if text == "":
         return ""
 
-    # -----------------------------------------------------
     # URL
-    # -----------------------------------------------------
-
     text = re.sub(
         r"https?://\S+|www\.\S+",
         " ",
         text
     )
 
-    # -----------------------------------------------------
-    # EMAIL
-    # -----------------------------------------------------
-
+    # Email
     text = re.sub(
         r"\S+@\S+",
         " ",
         text
     )
 
-    # -----------------------------------------------------
-    # USERNAME / MENTION
-    # -----------------------------------------------------
-
+    # Mention
     text = re.sub(
         r"@\w+",
         " ",
         text
     )
 
-    # -----------------------------------------------------
-    # HASHTAG
-    # -----------------------------------------------------
-
-    # #
-    # dihapus tetapi kata setelahnya dipertahankan
-    #
-    # contoh:
-    # #LivinMandiri
-    # menjadi:
-    # LivinMandiri
-    # -----------------------------------------------------
-
+    # Hashtag
+    # simbol # dihapus,
+    # tetapi isi kata tetap dipertahankan
     text = re.sub(
         r"#",
         "",
         text
     )
 
-    # -----------------------------------------------------
     # HTML
-    # -----------------------------------------------------
-
     text = re.sub(
         r"<.*?>",
         " ",
         text
     )
 
-    # -----------------------------------------------------
-    # ANGKA
-    # -----------------------------------------------------
-
+    # Angka
     text = re.sub(
         r"\d+",
         " ",
         text
     )
 
-    # -----------------------------------------------------
-    # PUNCTUATION
-    # -----------------------------------------------------
-
-    # Emoji TIDAK dihapus.
-    #
-    # Kita hanya menghapus punctuation ASCII.
-    #
-    # Contoh:
-    # ! ? , . tetap dibersihkan
-    # 😡 😭 😍 ❤️ tetap dipertahankan
-    # -----------------------------------------------------
-
+    # Punctuation
+    # Emoji TIDAK dihapus
     text = text.translate(
         str.maketrans(
             "",
@@ -290,10 +241,7 @@ def cleaning(text):
         )
     )
 
-    # -----------------------------------------------------
-    # NORMALISASI SPASI
-    # -----------------------------------------------------
-
+    # Spasi berlebih
     text = re.sub(
         r"\s+",
         " ",
@@ -304,7 +252,7 @@ def cleaning(text):
 
 
 # =========================================================
-# CASE FOLDING
+# 4.3.2 CASE FOLDING
 # =========================================================
 
 def case_folding(text):
@@ -315,7 +263,7 @@ def case_folding(text):
 
 
 # =========================================================
-# NORMALIZATION
+# 4.3.3 NORMALIZATION
 # =========================================================
 
 def normalization(text):
@@ -325,13 +273,30 @@ def normalization(text):
     if text == "":
         return ""
 
+    # -----------------------------------------------------
+    # Normalisasi karakter berulang
+    #
+    # baguuuus -> bagus
+    # lamaaaaa -> lama
+    # mantaaap -> mantap
+    # -----------------------------------------------------
+
+    text = re.sub(
+        r"(.)\1{2,}",
+        r"\1",
+        text
+    )
+
+    # -----------------------------------------------------
+    # Normalisasi slang
+    # -----------------------------------------------------
+
     words = text.split()
 
     normalized_words = []
 
     for word in words:
 
-        # Cari langsung di dictionary
         replacement = SLANG_DICT.get(
             word,
             word
@@ -347,37 +312,7 @@ def normalization(text):
 
 
 # =========================================================
-# REPEATED CHARACTER HANDLING
-# =========================================================
-
-def repeated_character_handling(text):
-
-    text = validate_text(text)
-
-    if text == "":
-        return ""
-
-    # -----------------------------------------------------
-    # Mengurangi karakter berulang:
-    #
-    # baguuuus -> bagus
-    # lamaaaaa -> lama
-    # mantaaap -> mantap
-    #
-    # Maksimal dua karakter berturut-turut.
-    # -----------------------------------------------------
-
-    text = re.sub(
-        r"(.)\1{2,}",
-        r"\1",
-        text
-    )
-
-    return text
-
-
-# =========================================================
-# TOKENIZATION
+# 4.3.4 TOKENIZATION
 # =========================================================
 
 def tokenization(text):
@@ -386,12 +321,6 @@ def tokenization(text):
 
     if text == "":
         return []
-
-    # Tokenisasi sederhana untuk tampilan.
-    #
-    # Tokenisasi utama saat masuk model tetap
-    # menggunakan tokenizer IndoBERT.
-    #
 
     return text.split()
 
@@ -402,9 +331,7 @@ def tokenization(text):
 
 def preprocess_text(text):
 
-    original = validate_text(
-        text
-    )
+    original = validate_text(text)
 
     clean = cleaning(
         original
@@ -418,12 +345,8 @@ def preprocess_text(text):
         lower
     )
 
-    repeated = repeated_character_handling(
-        normal
-    )
-
     token = tokenization(
-        repeated
+        normal
     )
 
     return {
@@ -440,14 +363,11 @@ def preprocess_text(text):
         "normalization":
             normal,
 
-        "repeated_character":
-            repeated,
-
         "token":
             token,
 
         "final_text":
-            repeated
+            normal
 
     }
 
@@ -475,63 +395,30 @@ def preprocess_dataframe(
         .apply(preprocess_text)
     )
 
-    # -----------------------------------------------------
-    # ORIGINAL
-    # -----------------------------------------------------
-
     df["original_text"] = results.apply(
         lambda x:
         x["original_text"]
     )
-
-    # -----------------------------------------------------
-    # CLEANING
-    # -----------------------------------------------------
 
     df["cleaning"] = results.apply(
         lambda x:
         x["cleaning"]
     )
 
-    # -----------------------------------------------------
-    # CASE FOLDING
-    # -----------------------------------------------------
-
     df["case_folding"] = results.apply(
         lambda x:
         x["case_folding"]
     )
-
-    # -----------------------------------------------------
-    # NORMALIZATION
-    # -----------------------------------------------------
 
     df["normalization"] = results.apply(
         lambda x:
         x["normalization"]
     )
 
-    # -----------------------------------------------------
-    # REPEATED CHARACTER
-    # -----------------------------------------------------
-
-    df["repeated_character"] = results.apply(
-        lambda x:
-        x["repeated_character"]
-    )
-
-    # -----------------------------------------------------
-    # TOKEN
-    # -----------------------------------------------------
-
     df["token"] = results.apply(
         lambda x:
         x["token"]
     )
-
-    # -----------------------------------------------------
-    # FINAL TEXT
-    # -----------------------------------------------------
 
     df["final_text"] = results.apply(
         lambda x:
@@ -542,7 +429,7 @@ def preprocess_dataframe(
 
 
 # =========================================================
-# PREPROCESSING STATISTICS
+# STATISTICS
 # =========================================================
 
 def preprocessing_statistics(df):
@@ -560,9 +447,6 @@ def preprocessing_statistics(df):
 
         "Normalization":
             df["normalization"].notna().sum(),
-
-        "Repeated Character":
-            df["repeated_character"].notna().sum(),
 
         "Tokenization":
             df["token"].notna().sum()
@@ -594,7 +478,6 @@ def empty_review(df):
 def average_length(df):
 
     if df.empty:
-
         return 0
 
     return round(
@@ -608,7 +491,6 @@ def average_length(df):
         .mean(),
 
         2
-
     )
 
 
@@ -632,9 +514,7 @@ def top_words(
             sentence.split()
         )
 
-    counter = Counter(
-        words
-    )
+    counter = Counter(words)
 
     return pd.DataFrame(
 
@@ -676,9 +556,7 @@ def review_length(df):
 
 def preprocess_single_review(text):
 
-    return preprocess_text(
-        text
-    )
+    return preprocess_text(text)
 
 
 # =========================================================
@@ -694,8 +572,6 @@ __all__ = [
     "case_folding",
 
     "normalization",
-
-    "repeated_character_handling",
 
     "tokenization",
 
